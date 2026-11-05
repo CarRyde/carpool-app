@@ -2,91 +2,285 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carpool — Staff</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#D6F03C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CarRyde Staff">
+<title>CarRyde Staff</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --ink:#12261E; --paper:#F6F3EC; --amber:#C97A2B; --amber-dark:#8A5518; --line-gray:#D8D2C4; --card:#FFFFFF; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:'DM Sans',sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; padding:30px 20px; }
-  .wrap { max-width:520px; margin:0 auto; }
-  h1 { font-family:'DM Serif Display',serif; font-size:24px; margin:0 0 4px; }
-  .sub { color:#6B6355; font-size:14px; margin-bottom:22px; }
-  .card { background:var(--card); border:1px solid var(--line-gray); border-radius:14px; padding:16px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-  .info .name { font-family:'DM Serif Display',serif; font-size:17px; }
-  .info .meta { font-size:12.5px; color:#6B6355; margin-top:2px; }
-  .pickup-btn {
-    flex-shrink:0; padding:10px 14px; border-radius:10px; border:1.5px solid var(--amber);
-    background:transparent; color:var(--amber-dark); font-family:inherit; font-weight:700; font-size:12.5px; cursor:pointer;
+  :root {
+    --vest: #D6F03C;
+    --ink: #1C2128;
+    --concrete: #EDEFEA;
+    --white: #FFFFFF;
+    --stripe: #C3CAA0;
+    --line: #CDD2CA;
+    --muted: #4F5861;
+    --go: #17803D;
+    --stop: #C62828;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    --text: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
-  .pickup-btn:active { background: rgba(201,122,43,0.1); }
-  .empty { text-align:center; color:#A9A296; font-size:14px; padding:30px 0; }
-  .note { font-size:12px; color:#A9A296; text-align:center; margin-top:16px; }
+  * { box-sizing: border-box; }
+  html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; overscroll-behavior: none; background: var(--concrete); }
+  body { margin: 0; font-family: var(--text); font-size: 17px; line-height: 1.35; color: var(--ink); background: var(--concrete); }
+  button { font-family: inherit; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+  [hidden] { display: none !important; }
+
+  .app { max-width: 640px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; }
+  header {
+    position: relative;
+    background: var(--vest);
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 21px;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  }
+  header::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 9px;
+    background: linear-gradient(to bottom, var(--stripe) 0 3px, transparent 3px 6px, var(--stripe) 6px 9px);
+  }
+  .brand { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1; }
+  .count { font-weight: 700; font-size: 17px; }
+
+  main { padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .intro { margin: 0 0 16px; color: var(--muted); font-size: 16px; }
+  .banner {
+    margin: 0 0 14px; padding: 12px 14px; border-radius: 12px;
+    background: #FBE4E4; color: #7C1D1D; font-weight: 600;
+  }
+
+  .list { display: grid; gap: 10px; }
+  .row {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+    background: var(--white); border: 2px solid var(--line); border-radius: 14px;
+    padding: 12px 14px;
+  }
+  .row.enter { animation: rise 240ms var(--ease-out) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .room {
+    min-width: 64px; text-align: center;
+    background: var(--ink); color: var(--vest);
+    font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1;
+    padding: 8px 10px 9px; border-radius: 10px;
+  }
+  .room small { display: block; font-family: var(--text); font-weight: 600; font-size: 12px; opacity: 0.85; margin-bottom: 2px; }
+  .info { min-width: 0; }
+  .name { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1; overflow-wrap: anywhere; }
+  .sub { margin-top: 3px; color: var(--muted); font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+  .car { margin-top: 4px; font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
+  .wait { font-weight: 600; font-size: 15px; color: var(--muted); }
+  .wait.long { color: var(--stop); }
+  .pick {
+    min-height: 52px; padding: 0 16px;
+    border: none; border-radius: 12px;
+    background: var(--ink); color: var(--white);
+    font-weight: 700; font-size: 16px; cursor: pointer;
+    transition: transform 120ms var(--ease-out);
+  }
+  .pick:active { transform: scale(0.96); }
+  .pick:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 18px; margin: 0; }
+  .foot { margin: 18px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 380px) {
+    .row { grid-template-columns: 1fr auto; }
+    .room { grid-column: 1 / -1; justify-self: start; display: flex; gap: 6px; align-items: baseline; }
+  }
+  @media (prefers-reduced-motion: reduce) { .row.enter { animation: none; } .pick { transition: none; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Staff</h1>
-  <div class="sub">Everyone currently checked in, across every classroom. Use "Mark picked up" only if a parent forgot to tap it themselves.</div>
-  <div id="list"></div>
-  <div class="note">Auto-refreshes every 10 seconds.</div>
+<div class="app">
+  <header>
+    <div class="brand">CarRyde Staff</div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+  <main>
+    <p class="intro">Everyone checked in right now, across every room. Tap "Picked up" only if a parent forgot to.</p>
+    <div class="banner" id="banner" role="alert" hidden></div>
+    <div class="list" id="list"></div>
+    <p class="empty" id="empty" hidden>No one is checked in right now.</p>
+    <p class="foot">Updates every few seconds.</p>
+  </main>
 </div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
+const POLL_MS = 4000;
+const LONG_WAIT_MIN = 10;
 
-async function callApi(action, params) {
-  const url = new URL(APPS_SCRIPT_URL);
-  url.searchParams.set('action', action);
-  Object.keys(params || {}).forEach(k => url.searchParams.set(k, params[k]));
-  const res = await fetch(url);
-  return res.json();
-}
+const $ = id => document.getElementById(id);
+let version = '';
+let inflight = false;
+let timer = null;
+let fails = 0;
+let firstPaint = true;
+let latest = [];
 
-function timeAgo(iso) {
-  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return 'just now';
-  if (mins === 1) return '1 min ago';
-  return mins + ' min ago';
-}
-
-async function render() {
-  const res = await callApi('staffList', {});
-  const list = document.getElementById('list');
-  if (!res.ok || !res.families.length) {
-    list.innerHTML = `<div class="empty">No one currently checked in.</div>`;
-    return;
+async function callApi(params, timeoutMs) {
+  const url = new URL(API);
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+  const ctrl = new AbortController();
+  const stop = setTimeout(() => ctrl.abort(), timeoutMs || 10000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    return await res.json();
+  } finally {
+    clearTimeout(stop);
   }
-  list.innerHTML = res.families.map(f => {
-    const mainName = f.child || f.family;
-    const metaParts = [`Room ${f.classroom}`];
-    if (f.child) metaParts.push(f.family);
-    if (f.notes) metaParts.push(f.notes);
-    metaParts.push(timeAgo(f.checkInTime));
-    return `
-      <div class="card">
-        <div class="info">
-          <div class="name">${mainName}</div>
-          <div class="meta">${metaParts.join(' · ')}</div>
-        </div>
-        <button class="pickup-btn" data-family="${f.family}">Mark picked up</button>
-      </div>
-    `;
-  }).join('');
-
-  document.querySelectorAll('.pickup-btn').forEach(btn => {
-    btn.onclick = async () => {
-      btn.disabled = true;
-      btn.textContent = '…';
-      await callApi('gotem', { family: btn.dataset.family });
-      render();
-    };
-  });
 }
 
-render();
-setInterval(render, 10000);
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function minutesSince(iso) {
+  const t = new Date(iso).getTime();
+  if (isNaN(t)) return 0;
+  return Math.max(0, Math.floor((Date.now() - t) / 60000));
+}
+function waitText(iso) {
+  const m = minutesSince(iso);
+  return m < 1 ? 'Just arrived' : 'Waiting ' + m + ' min';
+}
+function keyOf(f) { return f.checkInTime + '|' + f.family; }
+
+function showBanner(text) {
+  $('banner').textContent = text || '';
+  $('banner').hidden = !text;
+}
+
+function makeRow(f) {
+  const row = el('div', 'row');
+
+  const room = el('div', 'room');
+  room.append(el('small', null, 'Room'), document.createTextNode(f.classroom));
+
+  const info = el('div', 'info');
+  info.append(el('div', 'name', f.child || f.family));
+  const sub = el('div', 'sub');
+  info.append(sub);
+  const car = el('div', 'car');
+  info.append(car);
+
+  const right = el('div');
+  const wait = el('div', 'wait');
+  const btn = el('button', 'pick', 'Picked up');
+  btn.type = 'button';
+  btn.addEventListener('click', () => markPicked(row, f, btn));
+  right.append(btn);
+
+  row.append(room, info, right);
+  row._parts = { sub: sub, car: car, wait: wait, room: room };
+  // the wait time sits under the name so the button stays big
+  info.insertBefore(wait, car);
+  updateRow(row, f);
+  return row;
+}
+
+function updateRow(row, f) {
+  row._f = f;
+  const p = row._parts;
+  const sub = f.child && f.family ? f.family : '';
+  if (p.sub.textContent !== sub) p.sub.textContent = sub;
+  p.sub.hidden = !sub;
+  if (p.car.textContent !== f.notes) p.car.textContent = f.notes;
+  p.car.hidden = !f.notes;
+  refreshWait(row);
+}
+function refreshWait(row) {
+  const iso = row._f.checkInTime;
+  const text = waitText(iso);
+  if (row._parts.wait.textContent !== text) row._parts.wait.textContent = text;
+  row._parts.wait.classList.toggle('long', minutesSince(iso) >= LONG_WAIT_MIN);
+}
+
+function draw(families) {
+  latest = families.slice().sort((a, b) => new Date(a.checkInTime) - new Date(b.checkInTime));
+  const list = $('list');
+  const existing = new Map();
+  Array.from(list.children).forEach(c => existing.set(c.dataset.k, c));
+  const wanted = new Set();
+  let previous = null;
+  latest.forEach(f => {
+    const k = keyOf(f);
+    wanted.add(k);
+    let row = existing.get(k);
+    if (!row) {
+      row = makeRow(f);
+      row.dataset.k = k;
+      if (!firstPaint) {
+        row.classList.add('enter');
+        row.addEventListener('animationend', () => row.classList.remove('enter'), { once: true });
+      }
+    } else {
+      updateRow(row, f);
+    }
+    const shouldBeNext = previous ? previous.nextElementSibling : list.firstElementChild;
+    if (shouldBeNext !== row) list.insertBefore(row, shouldBeNext);
+    previous = row;
+  });
+  existing.forEach((row, k) => { if (!wanted.has(k)) row.remove(); });
+  firstPaint = false;
+  $('empty').hidden = latest.length > 0;
+  $('count').textContent = latest.length ? latest.length + ' waiting' : '';
+}
+
+async function markPicked(row, f, btn) {
+  btn.disabled = true;
+  // remove it right away; if the server says no, we put it back
+  row.remove();
+  latest = latest.filter(x => keyOf(x) !== keyOf(f));
+  $('empty').hidden = latest.length > 0;
+  $('count').textContent = latest.length ? latest.length + ' waiting' : '';
+  try {
+    const res = await callApi({ action: 'gotem', family: f.family });
+    if (!res.ok) throw new Error('rejected');
+    showBanner('');
+  } catch (e) {
+    showBanner('Couldn’t mark ' + (f.child || f.family) + ' as picked up. Check your connection and try again.');
+  }
+  version = '';
+  clearTimeout(timer);
+  tick();
+}
+
+async function tick() {
+  if (inflight) return;
+  inflight = true;
+  const startedAt = Date.now();
+  try {
+    const data = await callApi({ action: 'staffList', v: version }, 9000);
+    if (!data.ok) throw new Error('bad response');
+    if (fails >= 3) showBanner('');
+    fails = 0;
+    if (!data.unchanged) {
+      version = data.v || '';
+      draw(data.families || []);
+    }
+  } catch (e) {
+    fails++;
+    if (fails >= 3) showBanner('Can’t reach CarRyde. The list below may be out of date. Retrying…');
+  } finally {
+    inflight = false;
+    clearTimeout(timer);
+    timer = setTimeout(tick, Math.max(250, (document.hidden ? 15000 : POLL_MS) - (Date.now() - startedAt)));
+  }
+}
+
+setInterval(() => { Array.from($('list').children).forEach(refreshWait); }, 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { clearTimeout(timer); tick(); } });
+tick();
 </script>
 </body>
 </html>

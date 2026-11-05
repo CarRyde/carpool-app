@@ -2,274 +2,742 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Carpool Check-In</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#D6F03C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CarRyde">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>CarRyde</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #12261E;
-    --paper: #F6F3EC;
-    --gate-green: #1B6E4D;
-    --gate-green-dark: #124B33;
-    --amber: #C97A2B;
-    --line-gray: #D8D2C4;
-    --card: #FFFFFF;
+    --vest: #D6F03C;
+    --ink: #1C2128;
+    --concrete: #EDEFEA;
+    --white: #FFFFFF;
+    --stripe: #C3CAA0;
+    --line: #CDD2CA;
+    --muted: #4F5861;
+    --go: #17803D;
+    --stop: #C62828;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    --text: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+    background: var(--concrete);
+  }
   body {
     margin: 0;
-    font-family: 'DM Sans', sans-serif;
-    background: var(--paper);
+    font-family: var(--text);
+    font-size: 18px;
+    line-height: 1.4;
     color: var(--ink);
+    background: var(--concrete);
+  }
+  button, input { font-family: inherit; }
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* ---------- Layout ---------- */
+  .app {
     min-height: 100vh;
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 24px 20px 48px;
+    background: var(--concrete);
   }
-  .stub {
-    width: 100%;
-    max-width: 420px;
-    background: var(--card);
-    border: 1px solid var(--line-gray);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 1px 2px rgba(18,38,30,0.06);
+  header.top {
+    background: var(--vest);
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 12px;
+    position: relative;
   }
-  .stub-header {
-    background: var(--gate-green);
-    color: var(--paper);
-    padding: 18px 22px;
+  header.top .brand {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1;
+    letter-spacing: 0.01em;
   }
-  .stub-header .brand {
-    font-family: 'DM Serif Display', serif;
-    font-size: 20px;
-    letter-spacing: 0.02em;
+  /* two reflective stripes, like a crossing guard's vest */
+  header.top::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 9px;
+    background: linear-gradient(to bottom, var(--stripe) 0 3px, transparent 3px 6px, var(--stripe) 6px 9px);
   }
-  .stub-header .tag {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    opacity: 0.85;
+  header.top { padding-bottom: 21px; }
+
+  main {
+    flex: 1;
+    padding: 24px 20px 20px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  .stub-body { padding: 26px 24px 22px; }
+  .bar {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--concrete);
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- Type ---------- */
+  .who {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(52px, 17vw, 76px);
+    line-height: 0.95;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .room-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 3px 12px 4px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--vest);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.15;
+  }
+  h2.title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 1;
+    margin: 0 0 8px;
+  }
+  .lead { margin: 0 0 20px; color: var(--muted); }
+
+  /* ---------- Form ---------- */
   .field { margin-bottom: 16px; }
-  .field label {
+  .field label, .group-label {
     display: block;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #6B6355;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--muted);
     margin-bottom: 6px;
   }
-  .field input {
+  .field input, .text-input {
     width: 100%;
-    padding: 13px 14px;
-    border: 1.5px solid var(--line-gray);
-    border-radius: 10px;
-    font-size: 16px;
-    font-family: inherit;
-    background: var(--paper);
-    color: var(--ink);
-  }
-  .field input:focus { outline: 2px solid var(--gate-green); border-color: var(--gate-green); }
-
-  button.primary {
-    width: 100%;
-    padding: 18px;
-    border: none;
+    height: 56px;
+    padding: 0 16px;
+    border: 2px solid var(--line);
     border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 18px;
+  }
+  .field input:focus-visible, .text-input:focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 1px;
+    border-color: var(--ink);
+  }
+  .form-error {
+    margin: 0 0 14px;
+    color: var(--stop);
+    font-weight: 600;
+  }
+
+  /* ---------- Car details chips ---------- */
+  .details { margin-top: 26px; }
+  .group { margin-bottom: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    min-height: 46px;
+    padding: 0 16px;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--ink);
     font-size: 17px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 120ms var(--ease-out), background-color 120ms var(--ease-out), border-color 120ms var(--ease-out);
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip[aria-pressed="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--white);
+  }
+  .chip:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .swatch {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(28,33,40,0.45);
+    flex-shrink: 0;
+  }
+  .chip[aria-pressed="true"] .swatch { border-color: rgba(255,255,255,0.8); }
+
+  /* ---------- Buttons ---------- */
+  .cta {
+    width: 100%;
+    height: 76px;
+    border: none;
+    border-radius: 18px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 34px;
     letter-spacing: 0.01em;
     cursor: pointer;
-    color: var(--paper);
-    background: var(--gate-green);
-    transition: transform 0.08s ease, background 0.15s ease;
+    transition: transform 120ms var(--ease-out);
   }
-  button.primary:active { transform: scale(0.98); }
-  button.primary:disabled { background: #A9A296; cursor: default; transform: none; }
-  button.secondary {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border: 1.5px solid var(--line-gray);
-    border-radius: 10px;
+  .cta:active { transform: scale(0.97); }
+  .cta:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .cta-go { background: var(--vest); color: var(--ink); box-shadow: inset 0 0 0 3px var(--ink); }
+  .cta-dark { background: var(--ink); color: var(--white); }
+  .btn-quiet {
+    min-height: 48px;
+    padding: 0 18px;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
     background: transparent;
-    color: #6B6355;
-    font-family: inherit;
-    font-size: 14px;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 17px;
+    cursor: pointer;
+    transition: transform 120ms var(--ease-out);
+  }
+  .btn-quiet:active { transform: scale(0.97); }
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 12px 4px;
+    min-height: 44px;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
     cursor: pointer;
   }
 
-  .status-screen { text-align: center; padding: 10px 0 6px; }
-  .status-badge {
-    display: inline-block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    padding: 5px 12px;
-    border-radius: 999px;
-    margin-bottom: 18px;
+  /* ---------- Checked-in status ---------- */
+  .confirm {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
   }
-  .badge-waiting { background: #EFE9D8; color: var(--amber); }
-  .badge-ready { background: #E4F2EA; color: var(--gate-green-dark); }
-
-  .status-headline {
-    font-family: 'DM Serif Display', serif;
-    font-size: 26px;
-    line-height: 1.25;
-    margin: 0 0 10px;
+  .confirm-mark {
+    flex-shrink: 0;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--go);
+    display: grid;
+    place-items: center;
+    animation: pop 260ms var(--ease-out) both;
   }
-  .status-sub { font-size: 14px; color: #6B6355; margin-bottom: 26px; }
+  .confirm-mark svg { width: 30px; height: 30px; }
+  @keyframes pop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .confirm h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1;
+    margin: 0;
+  }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 18px 0 0;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--muted);
+    min-height: 28px;
+  }
+  .status.ok { color: var(--go); }
+  .status.bad { color: var(--stop); }
+  .status .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .spin {
+    width: 16px; height: 16px;
+    border: 2.5px solid rgba(79,88,97,0.3);
+    border-top-color: var(--muted);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status .retry { margin-left: auto; }
 
-  .family-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 15px;
-    color: #6B6355;
-    margin-top: 18px;
+  .edit-note { margin-top: 26px; }
+  .edit-row { display: flex; gap: 10px; }
+  .edit-row .text-input { flex: 1; min-width: 0; }
+
+  .car-line {
+    margin: 16px 0 0;
+    padding: 10px 14px;
+    background: var(--white);
+    border-left: 6px solid var(--vest);
+    border-radius: 4px 12px 12px 4px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
-  .footer-note { font-size: 12px; color: #A9A296; margin-top: 18px; text-align: center; max-width: 420px; }
+  /* ---------- Home-screen hint ---------- */
+  .hint {
+    margin-top: 26px;
+    padding: 16px;
+    background: var(--white);
+    border: 2px solid var(--line);
+    border-radius: 14px;
+  }
+  .hint p { margin: 0 0 12px; }
+  .hint strong { font-weight: 700; }
+  .hint-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .chip:hover { border-color: var(--ink); }
+    .link-btn:hover { color: var(--ink); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .confirm-mark { animation: none; }
+    .chip, .cta, .btn-quiet { transition: none; }
+  }
+  @media (max-width: 360px) {
+    .cta { font-size: 30px; }
+    .confirm h2 { font-size: 32px; }
+  }
 </style>
 </head>
 <body>
-
-<div class="stub" id="app">
-  <div class="stub-header">
-    <div class="brand">Carpool Check-In</div>
-    <div class="tag">Tap twice. That's it.</div>
-  </div>
-  <div class="stub-body" id="body"></div>
+<div class="app">
+  <header class="top"><div class="brand">CarRyde</div></header>
+  <main id="main"></main>
+  <div class="bar" id="bar" hidden></div>
 </div>
-<div class="footer-note" id="footerNote"></div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
-const STORAGE_KEY = 'carpool_profile';
+const API = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
 
-function getProfile() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  return raw ? JSON.parse(raw) : null;
-}
-function saveProfile(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
-function getTripState() {
-  const raw = sessionStorage.getItem('carpool_trip');
-  return raw ? JSON.parse(raw) : { stage: 'idle' };
-}
-function setTripState(s) { sessionStorage.setItem('carpool_trip', JSON.stringify(s)); }
+const PROFILE_KEY = 'carpool_profile';
+const TRIP_KEY = 'carpool_trip_v2';
+const HINT_KEY = 'carryde_hint_dismissed';
+const TRIP_MAX_AGE = 3 * 60 * 60 * 1000; // an old trip never greets you tomorrow
 
-async function callApi(action, params) {
-  const url = new URL(APPS_SCRIPT_URL);
+const COLORS = [
+  ['White', '#FFFFFF'], ['Black', '#1C2128'], ['Silver', '#BFC4CA'], ['Gray', '#7B828A'],
+  ['Red', '#C62828'], ['Blue', '#2A5DB0'], ['Green', '#2E7D4F'], ['Tan', '#C9A66B']
+];
+const TYPES = ['SUV', 'Van', 'Truck', 'Sedan'];
+
+/* ---------- storage (never throws, falls back to memory) ---------- */
+const memory = {};
+function readJSON(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return memory[key] ? JSON.parse(memory[key]) : null;
+  }
+}
+function writeJSON(key, value) {
+  const raw = JSON.stringify(value);
+  memory[key] = raw;
+  try { localStorage.setItem(key, raw); } catch (e) {}
+}
+function removeKey(key) {
+  delete memory[key];
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+
+/* ---------- state ---------- */
+let profile = readJSON(PROFILE_KEY);
+let trip = loadTrip();
+let draft = { color: '', type: '', text: '' };
+let net = 'idle'; // idle | sending | sent | retrying
+let flushing = false;
+let retryTimer = null;
+let installPrompt = null;
+
+function loadTrip() {
+  const t = readJSON(TRIP_KEY);
+  if (!t || !t.ts || Date.now() - t.ts > TRIP_MAX_AGE) return { stage: 'idle' };
+  return t;
+}
+function saveTrip() { writeJSON(TRIP_KEY, trip); }
+
+/* ---------- tiny DOM helper (text only, never raw HTML) ---------- */
+function h(tag, attrs, ...kids) {
+  const node = document.createElement(tag);
+  for (const k in (attrs || {})) {
+    const v = attrs[k];
+    if (v === false || v == null) continue;
+    if (k === 'class') node.className = v;
+    else if (k === 'text') node.textContent = v;
+    else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v === true ? '' : v);
+  }
+  kids.flat().forEach(kid => {
+    if (kid == null || kid === false) return;
+    node.append(kid.nodeType ? kid : document.createTextNode(kid));
+  });
+  return node;
+}
+function svgCheck() {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  const p = document.createElementNS(ns, 'path');
+  p.setAttribute('d', 'M5 12.5l4.5 4.5L19 7.5');
+  p.setAttribute('fill', 'none');
+  p.setAttribute('stroke', '#fff');
+  p.setAttribute('stroke-width', '3.2');
+  p.setAttribute('stroke-linecap', 'round');
+  p.setAttribute('stroke-linejoin', 'round');
+  svg.append(p);
+  return svg;
+}
+
+/* ---------- network ---------- */
+async function callApi(action, params, timeoutMs) {
+  const url = new URL(API);
   url.searchParams.set('action', action);
   Object.keys(params || {}).forEach(k => url.searchParams.set(k, params[k]));
-  const res = await fetch(url);
-  return res.json();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs || 12000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-const body = document.getElementById('body');
-const footerNote = document.getElementById('footerNote');
+// Sends whatever hasn't reached the server yet, in order. The screen
+// changes the instant a button is tapped; this runs behind it and keeps
+// retrying if the signal drops (common at a pickup line).
+async function flush() {
+  if (flushing) return;
+  flushing = true;
+  clearTimeout(retryTimer);
+  try {
+    while (trip.stage === 'inline' || trip.stage === 'done') {
+      if (!trip.sent) {
+        setNet('sending');
+        const res = await callApi('checkin', {
+          family: profile.family, classroom: profile.classroom,
+          child: profile.child || '', notes: trip.notes || ''
+        });
+        if (!res.ok) { rejected(); return; }
+        trip.sent = true;
+        saveTrip();
+        setNet('sent');
+        continue;
+      }
+      if (trip.stage === 'done' && !trip.pickedSent) {
+        const res = await callApi('gotem', { family: profile.family });
+        if (!res.ok) { rejected(); return; }
+        trip.pickedSent = true;
+        saveTrip();
+        continue;
+      }
+      break;
+    }
+  } catch (e) {
+    setNet('retrying');
+    retryTimer = setTimeout(flush, 2500);
+  } finally {
+    flushing = false;
+  }
+}
+
+function rejected() {
+  // The server understood but refused (for example, a missing room).
+  trip = { stage: 'idle', error: 'We couldn’t check you in. Check the family name and room, then try again.' };
+  saveTrip();
+  net = 'idle';
+  render();
+}
+
+function setNet(state) {
+  net = state;
+  const el = document.getElementById('status');
+  if (el) paintStatus(el);
+}
+
+function paintStatus(el) {
+  el.replaceChildren();
+  el.className = 'status';
+  const room = 'Room ' + profile.classroom;
+  // After a page reload, `net` starts empty; trust what was saved.
+  const state = net === 'idle' && trip.sent ? 'sent' : net;
+  if (state === 'sending') {
+    el.append(h('span', { class: 'spin' }), 'Sending to ' + room + '…');
+  } else if (state === 'sent') {
+    el.classList.add('ok');
+    el.append(h('span', { class: 'dot' }), room + ' can see you now.');
+  } else if (state === 'retrying') {
+    el.classList.add('bad');
+    el.append(h('span', { class: 'dot' }), 'No signal. Trying again…',
+      h('button', { class: 'btn-quiet retry', type: 'button', onclick: () => flush() }, 'Try now'));
+  }
+}
+
+/* ---------- screens ---------- */
+const main = document.getElementById('main');
+const bar = document.getElementById('bar');
+
+// replaceChildren would print the word "null" for empty slots, so drop them.
+function fillMain(...nodes) {
+  main.replaceChildren(...nodes.filter(Boolean));
+}
+
+function showBar(node) {
+  bar.replaceChildren();
+  if (!node) { bar.hidden = true; return; }
+  bar.append(node);
+  bar.hidden = false;
+}
 
 function render() {
-  const profile = getProfile();
   if (!profile) return renderSetup();
-  const trip = getTripState();
-  if (trip.stage === 'idle') return renderIdle(profile);
-  if (trip.stage === 'inline') return renderInLine(profile);
-  if (trip.stage === 'done') return renderDone(profile);
+  if (trip.stage === 'inline') return renderInLine();
+  if (trip.stage === 'done') return renderDone();
+  return renderIdle();
 }
 
-function renderSetup(existing) {
-  const p = existing || {};
-  footerNote.textContent = '';
-  body.innerHTML = `
-    <div class="field"><label>Family Name</label>
-      <input id="f_family" value="${p.family || ''}" placeholder="e.g. Smith Family"></div>
-    <div class="field"><label>Child's Name</label>
-      <input id="f_child" value="${p.child || ''}" placeholder="e.g. Jordan"></div>
-    <div class="field"><label>Classroom Number</label>
-      <input id="f_classroom" value="${p.classroom || ''}" placeholder="e.g. 108"></div>
-    <button class="primary" id="saveBtn">Save & Continue</button>
-  `;
-  document.getElementById('saveBtn').onclick = () => {
-    const profile = {
-      family: document.getElementById('f_family').value.trim(),
-      child: document.getElementById('f_child').value.trim(),
-      classroom: document.getElementById('f_classroom').value.trim()
+function renderSetup(editing) {
+  const p = editing || {};
+  let errorText = '';
+  const err = h('p', { class: 'form-error', role: 'alert', hidden: true });
+  const family = h('input', { id: 'f_family', value: p.family || '', placeholder: 'Smith family', autocomplete: 'off', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 60 });
+  const child = h('input', { id: 'f_child', value: p.child || '', placeholder: 'Jordan', autocomplete: 'off', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 40 });
+  const room = h('input', { id: 'f_room', value: p.classroom || '', placeholder: '108', autocomplete: 'off', autocapitalize: 'characters', enterkeyhint: 'done', maxlength: 12 });
+
+  function save() {
+    const next = {
+      family: family.value.trim().replace(/\s+/g, ' '),
+      child: child.value.trim().replace(/\s+/g, ' '),
+      classroom: room.value.trim().replace(/\s+/g, ' ')
     };
-    if (!profile.family || !profile.classroom) { alert('Please fill in family name and classroom.'); return; }
-    saveProfile(profile);
-    render();
-  };
-}
-
-function renderIdle(profile) {
-  footerNote.innerHTML = `<span onclick="renderSetup(getProfile())" style="text-decoration:underline;cursor:pointer">Edit family info</span>`;
-  body.innerHTML = `
-    <div class="status-screen">
-      <div class="status-headline">Pulling into the line?</div>
-      <div class="status-sub">${profile.child ? profile.child + ' · ' : ''}Room ${profile.classroom}</div>
-      <div class="field" style="text-align:left;"><label>Today's car / notes (optional)</label>
-        <input id="notesInput" placeholder="e.g. Silver Honda, or twins - blue backpack"></div>
-      <button class="primary" id="inLineBtn">I've Arrived — In Line</button>
-    </div>
-  `;
-  document.getElementById('inLineBtn').onclick = async () => {
-    const notes = document.getElementById('notesInput').value.trim();
-    document.getElementById('inLineBtn').disabled = true;
-    document.getElementById('inLineBtn').textContent = 'Checking in…';
-    const res = await callApi('checkin', {
-      family: profile.family, classroom: profile.classroom, child: profile.child || '', notes: notes
-    });
-    if (res.ok) {
-      setTripState({ stage: 'inline' });
-      render();
-    } else {
-      console.error('Check-in failed:', res);
-      alert('Something went wrong: ' + (res.error || 'no error message returned') + '\n\nTry again, and if this keeps happening, send this exact message to Claude.');
-      render();
+    if (!next.family || !next.child || !next.classroom) {
+      err.textContent = 'Fill in all three boxes so the classroom knows who to look for.';
+      err.hidden = false;
+      return;
     }
-  };
-}
-
-function renderInLine(profile) {
-  footerNote.textContent = '';
-  body.innerHTML = `
-    <div class="status-screen">
-      <span class="status-badge badge-waiting">In Line</span>
-      <div class="status-headline">You're checked in.</div>
-      <div class="status-sub">Your child's classroom can already see you're here — no need to tap again until pickup.</div>
-      <div class="family-name">${profile.family}</div>
-      <button class="secondary" id="gotEmBtn" style="margin-top:24px">Got 'em — child is in the car</button>
-    </div>
-  `;
-  document.getElementById('gotEmBtn').onclick = async () => {
-    document.getElementById('gotEmBtn').disabled = true;
-    await callApi('gotem', { family: profile.family });
-    setTripState({ stage: 'done' });
+    profile = next;
+    writeJSON(PROFILE_KEY, profile);
+    trip = { stage: 'idle' };
+    saveTrip();
     render();
-  };
+  }
+  room.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+
+  fillMain(
+    h('h2', { class: 'title', text: editing ? 'Change your info' : 'Set up once' }),
+    h('p', { class: 'lead', text: 'This stays on this phone, so next time it’s one tap.' }),
+    h('div', { class: 'field' }, h('label', { for: 'f_family', text: 'Family name' }), family),
+    h('div', { class: 'field' }, h('label', { for: 'f_child', text: 'Child’s name' }), child),
+    h('div', { class: 'field' }, h('label', { for: 'f_room', text: 'Classroom number' }), room),
+    err
+  );
+  showBar(h('button', { class: 'cta cta-go', type: 'button', onclick: save }, 'Save'));
 }
 
-function renderDone(profile) {
-  footerNote.textContent = '';
-  body.innerHTML = `
-    <div class="status-screen">
-      <span class="status-badge badge-ready">Complete</span>
-      <div class="status-headline">See you tomorrow!</div>
-      <div class="status-sub">Pickup complete for ${profile.child || profile.family}.</div>
-      <button class="primary" id="resetBtn" style="margin-top:10px">Done</button>
-    </div>
-  `;
-  document.getElementById('resetBtn').onclick = () => {
-    setTripState({ stage: 'idle' });
+function currentNote() {
+  const vehicle = [draft.color, draft.type].filter(Boolean).join(' ');
+  return [vehicle, draft.text.trim()].filter(Boolean).join(', ');
+}
+
+function chip(label, selected, onTap, swatchColor) {
+  const b = h('button', { class: 'chip', type: 'button', 'aria-pressed': selected ? 'true' : 'false' },
+    swatchColor ? h('span', { class: 'swatch', style: 'background:' + swatchColor }) : null, label);
+  b.addEventListener('click', () => {
+    onTap();
+    renderChips();
+  });
+  return b;
+}
+
+let chipHost = null;
+function renderChips() {
+  if (!chipHost) return;
+  chipHost.replaceChildren(
+    h('div', { class: 'group' },
+      h('span', { class: 'group-label', text: 'Car color' }),
+      h('div', { class: 'chips' }, COLORS.map(c =>
+        chip(c[0], draft.color === c[0], () => { draft.color = draft.color === c[0] ? '' : c[0]; }, c[1])))),
+    h('div', { class: 'group' },
+      h('span', { class: 'group-label', text: 'Kind of car' }),
+      h('div', { class: 'chips' }, TYPES.map(t =>
+        chip(t, draft.type === t, () => { draft.type = draft.type === t ? '' : t; }))))
+  );
+}
+
+function renderIdle() {
+  const name = profile.child || profile.family;
+  const input = h('input', {
+    class: 'text-input', id: 'extra', value: draft.text, maxlength: 60,
+    placeholder: 'Anything else? Back of the lot, hazards on…',
+    autocomplete: 'off', autocapitalize: 'sentences', enterkeyhint: 'done'
+  });
+  input.addEventListener('input', () => { draft.text = input.value; });
+  chipHost = h('div');
+
+  const errorBox = trip.error
+    ? h('p', { class: 'form-error', role: 'alert', text: trip.error, style: 'margin-top:16px' })
+    : null;
+
+  fillMain(
+    h('p', { class: 'who', text: name }),
+    h('span', { class: 'room-tag', text: 'Room ' + profile.classroom }),
+    errorBox,
+    h('div', { class: 'details' },
+      h('p', { class: 'lead', style: 'margin-bottom:12px', text: 'Optional: help your child spot your car.' }),
+      chipHost,
+      h('div', { class: 'field', style: 'margin-top:4px' }, input)),
+    h('button', { class: 'link-btn', type: 'button', onclick: () => renderSetup(profile) }, 'Not your info? Change it')
+  );
+  renderChips();
+  showBar(h('button', { class: 'cta cta-go', id: 'hereBtn', type: 'button', onclick: arrive }, 'I’m here'));
+}
+
+function arrive() {
+  const notes = currentNote();
+  draft = { color: '', type: '', text: '' };
+  trip = { stage: 'inline', ts: Date.now(), sent: false, notes: notes };
+  saveTrip();
+  try { navigator.vibrate && navigator.vibrate(25); } catch (e) {}
+  render();
+  flush();
+}
+
+function renderInLine() {
+  const name = profile.child || profile.family;
+  const status = h('div', { id: 'status', class: 'status', role: 'status', 'aria-live': 'polite' });
+  paintStatus(status);
+
+  const carLine = trip.notes ? h('p', { class: 'car-line', text: trip.notes }) : null;
+
+  const edit = h('input', {
+    class: 'text-input', id: 'editNote', value: trip.notes || '', maxlength: 80,
+    placeholder: 'Silver SUV, back of the lot', autocomplete: 'off', enterkeyhint: 'send'
+  });
+  function sendNote() {
+    const value = edit.value.trim().replace(/\s+/g, ' ');
+    if (value === (trip.notes || '')) return;
+    trip.notes = value;
+    trip.sent = false;
+    saveTrip();
     render();
-  };
+    flush();
+  }
+  edit.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendNote(); } });
+
+  fillMain(
+    h('div', { class: 'confirm' },
+      h('div', { class: 'confirm-mark' }, svgCheck()),
+      h('h2', { text: 'You’re in line' })),
+    h('p', { class: 'who', text: name }),
+    h('span', { class: 'room-tag', text: 'Room ' + profile.classroom }),
+    carLine,
+    status,
+    h('div', { class: 'edit-note' },
+      h('label', { class: 'group-label', for: 'editNote', text: trip.notes ? 'Change car details' : 'Add car details' }),
+      h('div', { class: 'edit-row' }, edit,
+        h('button', { class: 'btn-quiet', type: 'button', onclick: sendNote }, 'Update'))),
+    hintCard()
+  );
+  showBar(h('button', { class: 'cta cta-dark', type: 'button', onclick: gotEm }, 'Got ’em'));
 }
 
+function gotEm() {
+  trip.stage = 'done';
+  trip.pickedSent = false;
+  trip.ts = Date.now();
+  saveTrip();
+  render();
+  flush();
+}
+
+function renderDone() {
+  fillMain(
+    h('div', { class: 'confirm' },
+      h('div', { class: 'confirm-mark' }, svgCheck()),
+      h('h2', { text: 'Pickup done' })),
+    h('p', { class: 'who', text: profile.child || profile.family }),
+    h('p', { class: 'lead', style: 'margin-top:14px', text: 'See you tomorrow.' }),
+    hintCard()
+  );
+  showBar(h('button', { class: 'cta cta-go', type: 'button', onclick: () => {
+    trip = { stage: 'idle' };
+    saveTrip();
+    render();
+  } }, 'Back to start'));
+}
+
+/* ---------- add to home screen ---------- */
+function isStandalone() {
+  return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPrompt = e;
+  if (profile && trip.stage !== 'idle') render();
+});
+window.addEventListener('appinstalled', () => { writeJSON(HINT_KEY, 1); installPrompt = null; render(); });
+
+function hintCard() {
+  if (isStandalone() || readJSON(HINT_KEY)) return null;
+  const ua = navigator.userAgent || '';
+  const isIos = /iPhone|iPad|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  if (!isIos && !isAndroid) return null;
+
+  const actions = h('div', { class: 'hint-actions' });
+  let message;
+  if (installPrompt) {
+    message = [h('strong', { text: 'Skip the link next time. ' }), 'Put CarRyde on your home screen.'];
+    actions.append(h('button', { class: 'btn-quiet', type: 'button', onclick: async () => {
+      try { installPrompt.prompt(); await installPrompt.userChoice; } catch (e) {}
+      installPrompt = null;
+      render();
+    } }, 'Add to home screen'));
+  } else if (isIos) {
+    message = [h('strong', { text: 'Skip the link next time. ' }), 'Tap the Share button, then “Add to Home Screen.”'];
+  } else {
+    message = [h('strong', { text: 'Skip the link next time. ' }), 'Tap the ⋮ menu, then “Add to Home screen.”'];
+  }
+  actions.append(h('button', { class: 'link-btn', type: 'button', onclick: () => { writeJSON(HINT_KEY, 1); render(); } }, 'Hide this'));
+  return h('div', { class: 'hint' }, h('p', null, message), actions);
+}
+
+/* ---------- start ---------- */
 render();
+if (trip.stage === 'inline' || trip.stage === 'done') flush();
+window.addEventListener('online', () => { if (trip.stage !== 'idle') flush(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && trip.stage !== 'idle') flush(); });
 </script>
 </body>
 </html>
