@@ -289,6 +289,36 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .status .retry { margin-left: auto; }
 
+  /* ---------- "My child isn't with me" ---------- */
+  .call { margin-top: 22px; }
+  .btn-call {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px 16px;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    background: var(--white);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: transform 120ms var(--ease-out), background-color 120ms var(--ease-out), color 120ms var(--ease-out);
+  }
+  .btn-call:active { transform: scale(0.97); }
+  .btn-call:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .btn-call.armed { background: var(--ink); color: var(--white); }
+  .call-help { margin: 8px 0 0; color: var(--muted); font-size: 16px; }
+  .call-state {
+    padding: 12px 14px;
+    background: var(--white);
+    border-left: 6px solid var(--go);
+    border-radius: 4px 12px 12px 4px;
+    font-weight: 600;
+  }
+  .call-state.bad { border-left-color: var(--stop); color: var(--stop); }
+  .call-state .spin { display: inline-block; vertical-align: -2px; margin-right: 8px; }
+
   .edit-note { margin-top: 26px; }
   .edit-row { display: flex; gap: 10px; }
   .edit-row .text-input { flex: 1; min-width: 0; }
@@ -455,6 +485,14 @@ async function flush() {
         setNet('sent');
         continue;
       }
+      if (trip.stage === 'inline' && trip.call === 'pending') {
+        // Staff hear about it only after the check-in has gone through.
+        const res = await callApi('callchild', { family: profile.family });
+        trip.call = res.ok ? 'sent' : 'failed';
+        saveTrip();
+        paintCall();
+        continue;
+      }
       if (trip.stage === 'done' && !trip.pickedSent) {
         const res = await callApi('gotem', { family: profile.family });
         if (!res.ok) { rejected(); return; }
@@ -501,6 +539,50 @@ function paintStatus(el) {
     el.classList.add('bad');
     el.append(h('span', { class: 'dot' }), 'No signal. Trying again…',
       h('button', { class: 'btn-quiet retry', type: 'button', onclick: () => flush() }, 'Try now'));
+  }
+}
+
+/* ---------- ask staff to call my child ---------- */
+let callArmed = false;
+let callArmTimer = null;
+
+function requestCall() {
+  if (!callArmed) {
+    // First tap only arms the button, so a stray tap can't send an
+    // intercom announcement.
+    callArmed = true;
+    clearTimeout(callArmTimer);
+    callArmTimer = setTimeout(() => { callArmed = false; paintCall(); }, 5000);
+    paintCall();
+    return;
+  }
+  callArmed = false;
+  clearTimeout(callArmTimer);
+  trip.call = 'pending';
+  saveTrip();
+  paintCall();
+  flush();
+}
+
+function paintCall() {
+  const box = document.getElementById('callBox');
+  if (!box || !profile) return;
+  const name = profile.child || 'your child';
+  box.replaceChildren();
+  if (trip.call === 'pending') {
+    box.append(h('div', { class: 'call-state' }, h('span', { class: 'spin' }), 'Telling staff…'));
+  } else if (trip.call === 'sent') {
+    box.append(
+      h('div', { class: 'call-state' }, 'Staff has been told. They’ll call ' + name + ' on the intercom.'),
+      h('button', { class: 'link-btn', type: 'button', onclick: () => { trip.call = ''; saveTrip(); callArmed = true; paintCall(); } }, 'Ask again'));
+  } else {
+    if (trip.call === 'failed') {
+      box.append(h('p', { class: 'call-state bad', role: 'alert' }, 'We couldn’t reach staff. Try again.'));
+    }
+    box.append(
+      h('button', { class: 'btn-call' + (callArmed ? ' armed' : ''), id: 'callBtn', type: 'button', onclick: requestCall },
+        callArmed ? 'Tap again to ask staff to call ' + name : 'My child isn’t with me yet'));
+    if (!callArmed) box.append(h('p', { class: 'call-help', text: 'Staff will call ' + name + ' on the intercom.' }));
   }
 }
 
@@ -663,12 +745,14 @@ function renderInLine() {
     h('span', { class: 'room-tag', text: 'Room ' + profile.classroom }),
     carLine,
     status,
+    h('div', { class: 'call', id: 'callBox' }),
     h('div', { class: 'edit-note' },
       h('label', { class: 'group-label', for: 'editNote', text: trip.notes ? 'Change car details' : 'Add car details' }),
       h('div', { class: 'edit-row' }, edit,
         h('button', { class: 'btn-quiet', type: 'button', onclick: sendNote }, 'Update'))),
     hintCard()
   );
+  paintCall();
   showBar(h('button', { class: 'cta cta-dark', type: 'button', onclick: gotEm }, 'Got ’em'));
 }
 

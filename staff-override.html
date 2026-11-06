@@ -56,6 +56,46 @@
     background: #FBE4E4; color: #7C1D1D; font-weight: 600;
   }
 
+  .sound {
+    min-height: 40px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px;
+    background: transparent; color: var(--ink); font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .sound[aria-pressed="true"] { background: var(--ink); color: var(--vest); }
+  .sound:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .head-right { display: flex; align-items: center; gap: 12px; }
+
+  /* ---------- Parents asking for a child to be called ---------- */
+  .alerts { margin: 0 0 24px; }
+  .alerts h2 {
+    font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1;
+    margin: 0 0 10px; display: flex; align-items: center; gap: 10px;
+  }
+  .badge {
+    min-width: 32px; height: 32px; padding: 0 9px; border-radius: 999px;
+    background: var(--stop); color: #fff; font-family: var(--text); font-weight: 700; font-size: 18px;
+    display: inline-grid; place-items: center;
+  }
+  .alert-list { display: grid; gap: 10px; }
+  .alert {
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    background: var(--white); border: 2px solid var(--stop); border-left-width: 10px;
+    border-radius: 14px; padding: 14px;
+  }
+  .alert.enter { animation: rise 240ms var(--ease-out) both; }
+  .alert .name { font-size: 36px; }
+  .alert .where { margin-top: 4px; font-weight: 700; font-size: 18px; }
+  .alert .ask { margin-top: 2px; color: var(--stop); font-weight: 600; font-size: 15px; }
+  .announce {
+    min-height: 64px; padding: 0 18px; border: none; border-radius: 12px;
+    background: var(--stop); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer;
+    transition: transform 120ms var(--ease-out);
+  }
+  .announce:active { transform: scale(0.96); }
+  .announce:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .tag { margin-top: 4px; font-weight: 700; font-size: 14px; color: var(--stop); }
+  .tag.done { color: var(--muted); }
+  .list-title { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1; margin: 0 0 10px; }
+
   .list { display: grid; gap: 10px; }
   .row {
     display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
@@ -92,17 +132,26 @@
   @media (max-width: 380px) {
     .row { grid-template-columns: 1fr auto; }
     .room { grid-column: 1 / -1; justify-self: start; display: flex; gap: 6px; align-items: baseline; }
+    .alert { grid-template-columns: 1fr; }
   }
-  @media (prefers-reduced-motion: reduce) { .row.enter { animation: none; } .pick { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .row.enter, .alert.enter { animation: none; } .pick, .announce { transition: none; } }
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand">CarRyde Staff</div>
-    <div class="count" id="count" aria-live="polite"></div>
+    <div class="head-right">
+      <button class="sound" id="soundBtn" type="button" aria-pressed="false">Sound off</button>
+      <div class="count" id="count" aria-live="polite"></div>
+    </div>
   </header>
   <main>
+    <section class="alerts" id="alerts" hidden aria-live="polite">
+      <h2>Call to the car <span class="badge" id="alertCount">0</span></h2>
+      <div class="alert-list" id="alertList"></div>
+    </section>
+    <h2 class="list-title" id="listTitle" hidden>Everyone in line</h2>
     <p class="intro">Everyone checked in right now, across every room. Tap "Picked up" only if a parent forgot to.</p>
     <div class="banner" id="banner" role="alert" hidden></div>
     <div class="list" id="list"></div>
@@ -172,6 +221,8 @@ function makeRow(f) {
   info.append(sub);
   const car = el('div', 'car');
   info.append(car);
+  const tag = el('div', 'tag');
+  info.append(tag);
 
   const right = el('div');
   const wait = el('div', 'wait');
@@ -181,7 +232,7 @@ function makeRow(f) {
   right.append(btn);
 
   row.append(room, info, right);
-  row._parts = { sub: sub, car: car, wait: wait, room: room };
+  row._parts = { sub: sub, car: car, wait: wait, room: room, tag: tag };
   // the wait time sits under the name so the button stays big
   info.insertBefore(wait, car);
   updateRow(row, f);
@@ -196,6 +247,10 @@ function updateRow(row, f) {
   p.sub.hidden = !sub;
   if (p.car.textContent !== f.notes) p.car.textContent = f.notes;
   p.car.hidden = !f.notes;
+  const tagText = f.call === 'requested' ? 'Parent asked for a call' : (f.call === 'announced' ? 'Announced' : '');
+  if (p.tag.textContent !== tagText) p.tag.textContent = tagText;
+  p.tag.className = 'tag' + (f.call === 'announced' ? ' done' : '');
+  p.tag.hidden = !tagText;
   refreshWait(row);
 }
 function refreshWait(row) {
@@ -205,41 +260,159 @@ function refreshWait(row) {
   row._parts.wait.classList.toggle('long', minutesSince(iso) >= LONG_WAIT_MIN);
 }
 
-function draw(families) {
-  latest = families.slice().sort((a, b) => new Date(a.checkInTime) - new Date(b.checkInTime));
-  const list = $('list');
+// Re-use the cards already on screen so nothing flashes. Only brand-new
+// items are created, and only they animate.
+function reconcile(container, items, keyFn, makeNode, updateNode) {
   const existing = new Map();
-  Array.from(list.children).forEach(c => existing.set(c.dataset.k, c));
+  Array.from(container.children).forEach(c => existing.set(c.dataset.k, c));
   const wanted = new Set();
   let previous = null;
-  latest.forEach(f => {
-    const k = keyOf(f);
+  items.forEach(item => {
+    const k = keyFn(item);
     wanted.add(k);
-    let row = existing.get(k);
-    if (!row) {
-      row = makeRow(f);
-      row.dataset.k = k;
+    let node = existing.get(k);
+    if (!node) {
+      node = makeNode(item);
+      node.dataset.k = k;
       if (!firstPaint) {
-        row.classList.add('enter');
-        row.addEventListener('animationend', () => row.classList.remove('enter'), { once: true });
+        node.classList.add('enter');
+        node.addEventListener('animationend', () => node.classList.remove('enter'), { once: true });
       }
     } else {
-      updateRow(row, f);
+      updateNode(node, item);
     }
-    const shouldBeNext = previous ? previous.nextElementSibling : list.firstElementChild;
-    if (shouldBeNext !== row) list.insertBefore(row, shouldBeNext);
-    previous = row;
+    const shouldBeNext = previous ? previous.nextElementSibling : container.firstElementChild;
+    if (shouldBeNext !== node) container.insertBefore(node, shouldBeNext);
+    previous = node;
   });
-  existing.forEach((row, k) => { if (!wanted.has(k)) row.remove(); });
+  existing.forEach((node, k) => { if (!wanted.has(k)) node.remove(); });
+}
+
+/* ---------- parents asking for a child to be called ---------- */
+function alertKey(f) { return keyOf(f) + '|' + f.callAt; }
+
+function makeAlert(f) {
+  const card = el('div', 'alert');
+  const info = el('div');
+  const name = el('div', 'name', f.child || f.family);
+  const where = el('div', 'where', 'Room ' + f.classroom);
+  const car = el('div', 'sub');
+  const ask = el('div', 'ask');
+  info.append(name, where, car, ask);
+  const btn = el('button', 'announce', 'Announced');
+  btn.type = 'button';
+  btn.addEventListener('click', () => callDone(card, f));
+  card.append(info, btn);
+  card._parts = { car: car, ask: ask };
+  card._f = f;
+  updateAlert(card, f);
+  return card;
+}
+function updateAlert(card, f) {
+  card._f = f;
+  const lines = [];
+  if (f.child && f.family) lines.push(f.family);
+  if (f.notes) lines.push('Car: ' + f.notes);
+  const text = lines.join('. ');
+  if (card._parts.car.textContent !== text) card._parts.car.textContent = text;
+  card._parts.car.hidden = !text;
+  refreshAsk(card);
+}
+function refreshAsk(card) {
+  const m = minutesSince(card._f.callAt);
+  const text = m < 1 ? 'Asked just now' : 'Asked ' + m + ' min ago';
+  if (card._parts.ask.textContent !== text) card._parts.ask.textContent = text;
+}
+
+/* ---------- sound ---------- */
+const SOUND_KEY = 'carryde_staff_sound';
+let soundOn = false;
+let audioCtx = null;
+try { soundOn = localStorage.getItem(SOUND_KEY) === '1'; } catch (e) {}
+
+function paintSoundButton() {
+  $('soundBtn').textContent = soundOn ? 'Sound on' : 'Sound off';
+  $('soundBtn').setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+}
+function beep() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    [0, 0.28].forEach(offset => {
+      const t0 = audioCtx.currentTime + offset;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.24);
+    });
+  } catch (e) {}
+}
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0'); } catch (e) {}
+  paintSoundButton();
+  if (soundOn) beep(); // a tap is needed to unlock sound, and this proves it works
+});
+paintSoundButton();
+
+let seenAlerts = new Set();
+
+function draw(families) {
+  latest = families.slice().sort((a, b) => new Date(a.checkInTime) - new Date(b.checkInTime));
+
+  // Parents asking for a call, oldest request first
+  const alerts = latest.filter(f => f.call === 'requested')
+    .sort((a, b) => new Date(a.callAt) - new Date(b.callAt));
+  reconcile($('alertList'), alerts, alertKey, makeAlert, updateAlert);
+  $('alerts').hidden = alerts.length === 0;
+  $('listTitle').hidden = alerts.length === 0 || latest.length === 0;
+  $('alertCount').textContent = alerts.length;
+  document.title = (alerts.length ? '(' + alerts.length + ') ' : '') + 'CarRyde Staff';
+  const keys = new Set(alerts.map(alertKey));
+  if (!firstPaint && alerts.some(f => !seenAlerts.has(alertKey(f))) && soundOn) {
+    beep();
+    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+  }
+  seenAlerts = keys;
+
+  // Everyone in line
+  reconcile($('list'), latest, keyOf, makeRow, updateRow);
   firstPaint = false;
   $('empty').hidden = latest.length > 0;
   $('count').textContent = latest.length ? latest.length + ' waiting' : '';
+}
+
+async function callDone(card, f) {
+  card.remove();
+  latest = latest.map(x => keyOf(x) === keyOf(f) ? Object.assign({}, x, { call: 'announced' }) : x);
+  $('alerts').hidden = $('alertList').children.length === 0;
+  $('alertCount').textContent = $('alertList').children.length;
+  $('listTitle').hidden = $('alertList').children.length === 0;
+  try {
+    const res = await callApi({ action: 'callclear', family: f.family });
+    if (!res.ok) throw new Error('rejected');
+    showBanner('');
+  } catch (e) {
+    showBanner('Couldn’t save that ' + (f.child || f.family) + ' was announced. It may come back on the list.');
+  }
+  version = '';
+  clearTimeout(timer);
+  tick();
 }
 
 async function markPicked(row, f, btn) {
   btn.disabled = true;
   // remove it right away; if the server says no, we put it back
   row.remove();
+  Array.from($('alertList').children).forEach(c => { if (c._f && keyOf(c._f) === keyOf(f)) c.remove(); });
+  $('alerts').hidden = $('alertList').children.length === 0;
+  $('alertCount').textContent = $('alertList').children.length;
   latest = latest.filter(x => keyOf(x) !== keyOf(f));
   $('empty').hidden = latest.length > 0;
   $('count').textContent = latest.length ? latest.length + ' waiting' : '';
@@ -278,7 +451,10 @@ async function tick() {
   }
 }
 
-setInterval(() => { Array.from($('list').children).forEach(refreshWait); }, 20000);
+setInterval(() => {
+  Array.from($('list').children).forEach(refreshWait);
+  Array.from($('alertList').children).forEach(refreshAsk);
+}, 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { clearTimeout(timer); tick(); } });
 tick();
 </script>
