@@ -104,7 +104,7 @@ let inflight = false;
 let timer = null;
 let fails = 0;
 let firstPaint = true;
-let seenAlerts = new Set();
+const alerted = new Map();   // child -> last time we saw them on the list
 
 async function callApi(params, timeoutMs) {
   const url = new URL(API);
@@ -198,23 +198,26 @@ function paintSoundButton() {
   $('soundBtn').textContent = soundOn ? 'Sound on' : 'Sound off';
   $('soundBtn').setAttribute('aria-pressed', soundOn ? 'true' : 'false');
 }
+let lastBeepAt = 0;
 function beep() {
+  // One short tone, never more than once every 10 seconds.
+  const now = Date.now();
+  if (now - lastBeepAt < 10000) return;
+  lastBeepAt = now;
   try {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    [0, 0.28].forEach(offset => {
-      const t0 = audioCtx.currentTime + offset;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, t0);
-      gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(t0);
-      osc.stop(t0 + 0.24);
-    });
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.42);
   } catch (e) {}
 }
 $('soundBtn').addEventListener('click', () => {
@@ -239,12 +242,20 @@ function draw(families) {
     .sort((a, b) => new Date(a.callAt) - new Date(b.callAt));
   reconcile($('alertList'), alerts, alertKey, makeAlert, updateAlert);
   paintCount();
-  const keys = new Set(alerts.map(alertKey));
-  if (!firstPaint && soundOn && alerts.some(f => !seenAlerts.has(alertKey(f)))) {
+  // Sound once per child. A child counts as "new" again only after they
+  // have been off the list for 30 seconds (for example, announced, then asked again).
+  const nowMs = Date.now();
+  let fresh = false;
+  alerts.forEach(f => {
+    const who = (f.id || f.family) + '|' + f.child;
+    if (!alerted.has(who)) fresh = true;
+    alerted.set(who, nowMs);
+  });
+  alerted.forEach((seen, who) => { if (nowMs - seen > 30000) alerted.delete(who); });
+  if (!firstPaint && soundOn && fresh) {
     beep();
-    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+    try { navigator.vibrate && navigator.vibrate(200); } catch (e) {}
   }
-  seenAlerts = keys;
   firstPaint = false;
 }
 

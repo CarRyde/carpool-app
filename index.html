@@ -228,6 +228,8 @@
     transition: transform 120ms var(--ease-out);
   }
   .cta:active { transform: scale(0.97); }
+  .cta:disabled { background: #D4D7CE; color: #7A828C; box-shadow: inset 0 0 0 3px #B9BEB2; cursor: not-allowed; transform: none; }
+  [hidden] { display: none !important; }
   .cta:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
   .cta-go { background: var(--vest); color: var(--ink); box-shadow: inset 0 0 0 3px var(--ink); }
   .cta-dark { background: var(--ink); color: var(--white); }
@@ -917,10 +919,17 @@ function renderSetup(editing, startError) {
   const locked = new Set(tripIds());      // names can't change while a child is in line
   let error = startError || '';
   let focusId = null;
+  let refreshSave = null;
+
+  // Every box for every child must be filled in before Save works.
+  function isComplete() {
+    const kids = wc.children.map(c => ({ first: squish(c.first), last: squish(c.last), room: squish(c.room) }));
+    return kids.length > 0 && kids.every(c => c.first && c.last && c.room);
+  }
 
   function field(label, id, value, attrs, onInput, disabled) {
     const input = h('input', Object.assign({ id: id, value: value, autocomplete: 'off', disabled: disabled }, attrs));
-    input.addEventListener('input', () => onInput(input.value));
+    input.addEventListener('input', () => { onInput(input.value); if (refreshSave) refreshSave(); });
     return h('div', { class: 'field' }, h('label', { for: id, text: label }), input);
   }
 
@@ -938,6 +947,7 @@ function renderSetup(editing, startError) {
       if (new Set(names).size !== names.length) msg = 'Each child needs a different name.';
     }
     if (msg) { error = msg; draw(); return; }
+    if (!isComplete()) return;
 
     let needFlush = false;
     if (editing) {
@@ -986,6 +996,7 @@ function renderSetup(editing, startError) {
 
     const addBtn = wc.children.length < MAX_KIDS
       ? h('button', { class: 'btn-quiet', type: 'button', style: 'width:100%;margin-bottom:16px', onclick: () => {
+          if (!isComplete()) { error = 'Finish the boxes above before adding another child.'; draw(); return; }
           const nc = { id: uid(), first: '', last: '', room: '' };
           wc.children.push(nc);
           focusId = 'f_first_' + nc.id;
@@ -1006,10 +1017,18 @@ function renderSetup(editing, startError) {
         chipHost,
         h('div', { class: 'field', style: 'margin-top:4px' }, carInput('extra'))) : null,
       error ? h('p', { class: 'form-error', role: 'alert', text: error }) : null,
-      null
+      h('p', { class: 'call-help', id: 'fillHint', style: 'margin-top:0', text: 'Fill in every box to continue.' })
     );
     if (editing) renderChips();
-    showBar(h('button', { class: 'cta cta-go', type: 'button', onclick: save }, editing ? 'Save changes' : 'Save'));
+    const saveBtn = h('button', { class: 'cta cta-go', type: 'button', onclick: save }, editing ? 'Save changes' : 'Save');
+    refreshSave = () => {
+      const ok = isComplete();
+      saveBtn.disabled = !ok;
+      const hint = document.getElementById('fillHint');
+      if (hint) hint.hidden = ok;
+    };
+    refreshSave();
+    showBar(saveBtn);
     if (focusId) { const el = document.getElementById(focusId); if (el) el.focus(); focusId = null; }
   }
   draw();
@@ -1122,8 +1141,8 @@ function renderIdle(errorText) {
 function startArrive() {
   const ids = selIds();
   if (!ids.length) return;
-  if (profile.children.some(c => ids.indexOf(c.id) >= 0 && !c.last)) {
-    renderSetup(true, 'Add your child’s last name first, so staff know exactly who to call.');
+  if (profile.children.some(c => ids.indexOf(c.id) >= 0 && (!c.first || !c.last || !c.room))) {
+    renderSetup(true, 'Fill in your child’s first name, last name and classroom first, so staff know exactly who to call.');
     return;
   }
   flow = 'grounds';
