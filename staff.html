@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#D6F03C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CarRyde Staff">
+<title>CarRyde Staff</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vest: #D6F03C; --ink: #1C2128; --concrete: #EDEFEA; --white: #FFFFFF; --stripe: #C3CAA0;
+    --muted: #4F5861; --stop: #C62828; --stop-bg: #FDECEC;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    --text: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; overscroll-behavior: none; background: var(--concrete); }
+  body { margin: 0; font-family: var(--text); font-size: 17px; line-height: 1.35; color: var(--ink); background: var(--concrete); }
+  button { font-family: inherit; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+  [hidden] { display: none !important; }
+
+  .app { max-width: 640px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; }
+  header {
+    position: relative; background: var(--vest);
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 21px;
+    display: flex; flex-wrap: wrap; row-gap: 8px; align-items: baseline; justify-content: space-between; gap: 12px;
+  }
+  header::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 9px;
+    background: linear-gradient(to bottom, var(--stripe) 0 3px, transparent 3px 6px, var(--stripe) 6px 9px);
+  }
+  .brand { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 6vw, 28px); line-height: 1; white-space: nowrap; }
+  .count { font-weight: 700; font-size: 17px; white-space: nowrap; }
+  .head-right { display: flex; align-items: center; gap: 12px; }
+  .sound {
+    min-height: 40px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px; white-space: nowrap;
+    background: transparent; color: var(--ink); font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .sound[aria-pressed="true"] { background: var(--ink); color: var(--vest); }
+  .sound:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+  main { padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .banner { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; background: #FBE4E4; color: #7C1D1D; font-weight: 600; }
+
+  .alert-list { display: grid; gap: 8px; }
+  .alert {
+    display: grid; gap: 10px;
+    background: var(--stop-bg); border: 3px solid var(--stop); border-left-width: 12px;
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .alert.enter { animation: rise 240ms var(--ease-out) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .alert .name {
+    font-family: var(--display); font-weight: 700; color: var(--stop);
+    font-size: clamp(34px, 10vw, 46px); line-height: 1; overflow-wrap: anywhere;
+  }
+  .alert .where { margin-top: 6px; font-weight: 700; font-size: 18px; }
+  .alert .sub { margin-top: 2px; color: var(--muted); font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+  .announce {
+    width: 100%; min-height: 54px; padding: 0 18px; border: none; border-radius: 12px;
+    background: var(--stop); color: #fff; font-weight: 700; font-size: 19px; cursor: pointer;
+    transition: transform 120ms var(--ease-out);
+  }
+  .announce:active { transform: scale(0.96); }
+  .announce:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .empty { text-align: center; color: var(--muted); padding: 48px 0; font-size: 18px; margin: 0; }
+  .foot { margin: 18px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+  @media (prefers-reduced-motion: reduce) { .alert.enter { animation: none; } .announce { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">CarRyde Staff</div>
+    <div class="head-right">
+      <button class="sound" id="soundBtn" type="button" aria-pressed="false">Sound off</button>
+      <div class="count" id="count" aria-live="polite"></div>
+    </div>
+  </header>
+  <main>
+    <div class="banner" id="banner" role="alert" hidden></div>
+    <div class="alert-list" id="alertList" aria-live="polite"></div>
+    <p class="empty" id="empty">No names to announce right now.</p>
+    <p class="foot">Names show up here when a parent asks for their child. Updates every few seconds.</p>
+  </main>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
+const POLL_MS = 4000;
+
+const $ = id => document.getElementById(id);
+let version = '';
+let inflight = false;
+let timer = null;
+let fails = 0;
+let firstPaint = true;
+const alerted = new Map();   // child -> last time we saw them on the list
+
+async function callApi(params, timeoutMs) {
+  const url = new URL(API);
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+  const ctrl = new AbortController();
+  const stop = setTimeout(() => ctrl.abort(), timeoutMs || 10000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    return await res.json();
+  } finally {
+    clearTimeout(stop);
+  }
+}
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+function minutesSince(iso) {
+  const t = new Date(iso).getTime();
+  if (isNaN(t)) return 0;
+  return Math.max(0, Math.floor((Date.now() - t) / 60000));
+}
+function showBanner(text) {
+  $('banner').textContent = text || '';
+  $('banner').hidden = !text;
+}
+function alertKey(f) { return f.checkInTime + '|' + (f.id || f.family) + '|' + f.child + '|' + f.callAt; }
+function nameOf(f) { return f.child || f.family; }
+
+function reconcile(container, items, keyFn, makeNode, updateNode) {
+  const existing = new Map();
+  Array.from(container.children).forEach(c => existing.set(c.dataset.k, c));
+  const wanted = new Set();
+  let previous = null;
+  items.forEach(item => {
+    const k = keyFn(item);
+    wanted.add(k);
+    let node = existing.get(k);
+    if (!node) {
+      node = makeNode(item);
+      node.dataset.k = k;
+      if (!firstPaint) {
+        node.classList.add('enter');
+        node.addEventListener('animationend', () => node.classList.remove('enter'), { once: true });
+      }
+    } else {
+      updateNode(node, item);
+    }
+    const shouldBeNext = previous ? previous.nextElementSibling : container.firstElementChild;
+    if (shouldBeNext !== node) container.insertBefore(node, shouldBeNext);
+    previous = node;
+  });
+  existing.forEach((node, k) => { if (!wanted.has(k)) node.remove(); });
+}
+
+function makeAlert(f) {
+  const card = el('div', 'alert');
+  const info = el('div');
+  const name = el('div', 'name', nameOf(f));
+  const where = el('div', 'where');
+  const car = el('div', 'sub');
+  info.append(name, where, car);
+  const btn = el('button', 'announce', 'Announced');
+  btn.type = 'button';
+  btn.addEventListener('click', () => callDone(card, f));
+  card.append(info, btn);
+  card._parts = { where: where, car: car };
+  updateAlert(card, f);
+  return card;
+}
+function updateAlert(card, f) {
+  card._f = f;
+  const m = minutesSince(f.callAt);
+  const where = 'Room ' + f.classroom + ' · ' + (m < 1 ? 'asked just now' : 'asked ' + m + ' min ago');
+  if (card._parts.where.textContent !== where) card._parts.where.textContent = where;
+  const car = f.notes ? 'Car: ' + f.notes : '';
+  if (card._parts.car.textContent !== car) card._parts.car.textContent = car;
+  card._parts.car.hidden = !car;
+}
+
+/* ---------- sound ---------- */
+const SOUND_KEY = 'carryde_staff_sound';
+let soundOn = false;
+let audioCtx = null;
+try { soundOn = localStorage.getItem(SOUND_KEY) === '1'; } catch (e) {}
+
+function paintSoundButton() {
+  $('soundBtn').textContent = soundOn ? 'Sound on' : 'Sound off';
+  $('soundBtn').setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+}
+let lastBeepAt = 0;
+function beep() {
+  // One short tone, never more than once every 10 seconds.
+  const now = Date.now();
+  if (now - lastBeepAt < 10000) return;
+  lastBeepAt = now;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.42);
+  } catch (e) {}
+}
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0'); } catch (e) {}
+  paintSoundButton();
+  if (soundOn) beep(); // a tap is needed to unlock sound, and this proves it works
+});
+paintSoundButton();
+
+function paintCount() {
+  const n = $('alertList').children.length;
+  $('count').textContent = n ? n + ' to announce' : '';
+  $('empty').hidden = n > 0;
+  document.title = (n ? '(' + n + ') ' : '') + 'CarRyde Staff';
+}
+
+function draw(families) {
+  // Only children whose parent slid to announce, and who are still in line.
+  const alerts = families
+    .filter(f => f.status !== 'GotEm' && f.call === 'requested')
+    .sort((a, b) => new Date(a.callAt) - new Date(b.callAt));
+  reconcile($('alertList'), alerts, alertKey, makeAlert, updateAlert);
+  paintCount();
+  // Sound once per child. A child counts as "new" again only after they
+  // have been off the list for 30 seconds (for example, announced, then asked again).
+  const nowMs = Date.now();
+  let fresh = false;
+  alerts.forEach(f => {
+    const who = (f.id || f.family) + '|' + f.child;
+    if (!alerted.has(who)) fresh = true;
+    alerted.set(who, nowMs);
+  });
+  alerted.forEach((seen, who) => { if (nowMs - seen > 30000) alerted.delete(who); });
+  if (!firstPaint && soundOn && fresh) {
+    beep();
+    try { navigator.vibrate && navigator.vibrate(200); } catch (e) {}
+  }
+  firstPaint = false;
+}
+
+async function callDone(card, f) {
+  card.remove();
+  paintCount();
+  try {
+    const res = await callApi({ action: 'callclear', family: f.family, id: f.id || '', child: f.child || '' });
+    if (!res.ok) throw new Error('rejected');
+    showBanner('');
+  } catch (e) {
+    showBanner('Couldn’t save that ' + nameOf(f) + ' was announced. It may come back on the list.');
+  }
+  version = '';
+  clearTimeout(timer);
+  tick();
+}
+
+async function tick() {
+  if (inflight) return;
+  inflight = true;
+  const startedAt = Date.now();
+  try {
+    const data = await callApi({ action: 'staffList', v: version }, 9000);
+    if (!data.ok) throw new Error('bad response');
+    if (fails >= 3) showBanner('');
+    fails = 0;
+    if (!data.unchanged) {
+      version = data.v || '';
+      draw(data.families || []);
+    }
+  } catch (e) {
+    fails++;
+    if (fails >= 3) showBanner('Can’t reach CarRyde. The list below may be out of date. Retrying…');
+  } finally {
+    inflight = false;
+    clearTimeout(timer);
+    timer = setTimeout(tick, Math.max(250, (document.hidden ? 15000 : POLL_MS) - (Date.now() - startedAt)));
+  }
+}
+
+setInterval(() => {
+  Array.from($('alertList').children).forEach(c => c._f && updateAlert(c, c._f));
+}, 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { clearTimeout(timer); tick(); } });
+tick();
+</script>
+</body>
+</html>

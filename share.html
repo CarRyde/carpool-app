@@ -92,8 +92,9 @@
         <h1>Check in for pickup from your phone</h1>
         <ol>
           <li>Point your phone camera at the code and tap the link.</li>
-          <li>Enter your family name, your child's name and their room. You only do this once.</li>
-          <li>When you pull into the pickup line, tap "I'm here."</li>
+          <li>Enter your child's first and last name and their classroom. Add each child. You only do this once.</li>
+          <li>When you are on school grounds and pull into the pickup line, tap "I'm here."</li>
+          <li>Once your child is in the car, tap "Got 'em."</li>
         </ol>
       </div>
       <div class="qr-box">
@@ -101,7 +102,7 @@
         <p class="url" id="urlText"></p>
       </div>
     </div>
-    <p class="note">After your first check-in, add CarRyde to your home screen. Then you never need this code again.</p>
+    <p class="note">Please check in only once you are on school grounds. After your first check-in, add CarRyde to your home screen. Then you never need this code again.</p>
   </section>
 
   <p class="print-row"><button class="btn" id="printBtn" type="button">Print this poster</button></p>
@@ -121,7 +122,7 @@
     </div>
     <div class="tool">
       <h2>Staff page</h2>
-      <p>Shows everyone checked in across the school. Bookmark it on a phone or tablet.</p>
+      <p>Shows the names to announce on the intercom. Bookmark it on a phone or tablet.</p>
       <div class="row">
         <div class="link" id="staffLink"></div>
         <button class="btn" type="button" data-copy="staffLink">Copy</button>
@@ -144,7 +145,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 (function () {
   var base = new URL('./', location.href).href;           // folder this page lives in
   var parentUrl = base;
-  var staffUrl = base + 'staff-override.html';
+  var staffUrl = base + 'staff.html';
   var $ = function (id) { return document.getElementById(id); };
 
   if (location.protocol === 'file:') $('warn').hidden = false;
@@ -164,7 +165,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function tvUrl() {
     var room = $('roomInput').value.trim();
     var ok = /^[A-Za-z0-9][A-Za-z0-9 \-]{0,11}$/.test(room);
-    return base + 'carpool-tv.html' + (ok ? '?room=' + encodeURIComponent(room) : '');
+    return base + 'tv.html' + (ok ? '?room=' + encodeURIComponent(room) : '');
   }
   $('tvLink').textContent = tvUrl();
   $('roomInput').addEventListener('input', function () { $('tvLink').textContent = tvUrl(); });
