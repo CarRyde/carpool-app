@@ -47,7 +47,10 @@
     background: linear-gradient(to bottom, var(--stripe) 0 3px, transparent 3px 6px, var(--stripe) 6px 9px);
   }
   .brand { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1; }
-  .count { font-weight: 700; font-size: 17px; }
+  .count { font-weight: 700; font-size: 17px; white-space: nowrap; }
+  .sound { white-space: nowrap; }
+  .brand { white-space: nowrap; font-size: clamp(22px, 6vw, 28px); }
+  header { flex-wrap: wrap; row-gap: 8px; }
 
   main { padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
   .intro { margin: 0 0 16px; color: var(--muted); font-size: 16px; }
@@ -77,17 +80,18 @@
   }
   .alert-list { display: grid; gap: 10px; }
   .alert {
-    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
-    background: var(--white); border: 2px solid var(--stop); border-left-width: 10px;
-    border-radius: 14px; padding: 14px;
+    display: grid; grid-template-columns: 1fr; gap: 14px;
+    background: var(--white); border: 3px solid var(--stop); border-left-width: 12px;
+    border-radius: 14px; padding: 16px;
   }
   .alert.enter { animation: rise 240ms var(--ease-out) both; }
-  .alert .name { font-size: 36px; }
-  .alert .where { margin-top: 4px; font-weight: 700; font-size: 18px; }
-  .alert .ask { margin-top: 2px; color: var(--stop); font-weight: 600; font-size: 15px; }
+  .alert .say { font-weight: 700; font-size: 15px; color: var(--stop); margin-bottom: 4px; }
+  .alert .name { font-size: clamp(44px, 13vw, 64px); font-weight: 700; line-height: 0.95; letter-spacing: 0.005em; }
+  .alert .where { margin-top: 10px; font-weight: 700; font-size: 22px; }
+  .alert .ask { margin-top: 4px; color: var(--stop); font-weight: 600; font-size: 16px; }
   .announce {
-    min-height: 64px; padding: 0 18px; border: none; border-radius: 12px;
-    background: var(--stop); color: #fff; font-weight: 700; font-size: 17px; cursor: pointer;
+    width: 100%; min-height: 64px; padding: 0 18px; border: none; border-radius: 12px;
+    background: var(--stop); color: #fff; font-weight: 700; font-size: 20px; cursor: pointer;
     transition: transform 120ms var(--ease-out);
   }
   .announce:active { transform: scale(0.96); }
@@ -112,7 +116,7 @@
   }
   .room small { display: block; font-family: var(--text); font-weight: 600; font-size: 12px; opacity: 0.85; margin-bottom: 2px; }
   .info { min-width: 0; }
-  .name { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1; overflow-wrap: anywhere; }
+  .name { font-family: var(--display); font-weight: 700; font-size: 38px; line-height: 1; overflow-wrap: anywhere; }
   .sub { margin-top: 3px; color: var(--muted); font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
   .car { margin-top: 4px; font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
   .wait { font-weight: 600; font-size: 15px; color: var(--muted); }
@@ -126,13 +130,16 @@
   }
   .pick:active { transform: scale(0.96); }
   .pick:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .picked-sec { margin-top: 28px; }
+  .row.is-picked { background: transparent; border-style: dashed; }
+  .row.is-picked .room { background: var(--muted); color: var(--white); }
+  .row.is-picked .tag { color: var(--go); }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 18px; margin: 0; }
   .foot { margin: 18px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
 
   @media (max-width: 380px) {
     .row { grid-template-columns: 1fr auto; }
     .room { grid-column: 1 / -1; justify-self: start; display: flex; gap: 6px; align-items: baseline; }
-    .alert { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) { .row.enter, .alert.enter { animation: none; } .pick, .announce { transition: none; } }
 </style>
@@ -152,10 +159,14 @@
       <div class="alert-list" id="alertList"></div>
     </section>
     <h2 class="list-title" id="listTitle" hidden>Everyone in line</h2>
-    <p class="intro">Everyone checked in right now, across every room. Tap "Picked up" only if a parent forgot to.</p>
+    <p class="intro">Everyone checked in right now, across every room. Tap "Got ’em" when a child gets in a car.</p>
     <div class="banner" id="banner" role="alert" hidden></div>
     <div class="list" id="list"></div>
     <p class="empty" id="empty" hidden>No one is checked in right now.</p>
+    <section class="picked-sec" id="pickedSec" hidden>
+      <h2 class="list-title">Already picked up today</h2>
+      <div class="list" id="pickedList"></div>
+    </section>
     <p class="foot">Updates every few seconds.</p>
   </main>
 </div>
@@ -172,6 +183,7 @@ let timer = null;
 let fails = 0;
 let firstPaint = true;
 let latest = [];
+let everyone = [];
 
 async function callApi(params, timeoutMs) {
   const url = new URL(API);
@@ -202,7 +214,7 @@ function waitText(iso) {
   const m = minutesSince(iso);
   return m < 1 ? 'Just arrived' : 'Waiting ' + m + ' min';
 }
-function keyOf(f) { return f.checkInTime + '|' + f.family; }
+function keyOf(f) { return f.checkInTime + '|' + f.family + '|' + f.child; }
 
 function showBanner(text) {
   $('banner').textContent = text || '';
@@ -226,7 +238,7 @@ function makeRow(f) {
 
   const right = el('div');
   const wait = el('div', 'wait');
-  const btn = el('button', 'pick', 'Picked up');
+  const btn = el('button', 'pick', 'Got ’em');
   btn.type = 'button';
   btn.addEventListener('click', () => markPicked(row, f, btn));
   right.append(btn);
@@ -242,7 +254,7 @@ function makeRow(f) {
 function updateRow(row, f) {
   row._f = f;
   const p = row._parts;
-  const sub = f.child && f.family ? f.family : '';
+  const sub = f.child && f.family ? 'Family: ' + f.family : '';
   if (p.sub.textContent !== sub) p.sub.textContent = sub;
   p.sub.hidden = !sub;
   if (p.car.textContent !== f.notes) p.car.textContent = f.notes;
@@ -259,6 +271,19 @@ function refreshWait(row) {
   if (row._parts.wait.textContent !== text) row._parts.wait.textContent = text;
   row._parts.wait.classList.toggle('long', minutesSince(iso) >= LONG_WAIT_MIN);
 }
+
+function makePickedRow(f) {
+  const row = el('div', 'row is-picked');
+  const room = el('div', 'room');
+  room.append(el('small', null, 'Room'), document.createTextNode(f.classroom));
+  const info = el('div', 'info');
+  info.append(el('div', 'name', f.child || f.family));
+  if (f.child && f.family) info.append(el('div', 'sub', 'Family: ' + f.family));
+  info.append(el('div', 'tag', '✓ Picked up'));
+  row.append(room, info);
+  return row;
+}
+function updatePickedRow() {}
 
 // Re-use the cards already on screen so nothing flashes. Only brand-new
 // items are created, and only they animate.
@@ -294,11 +319,12 @@ function alertKey(f) { return keyOf(f) + '|' + f.callAt; }
 function makeAlert(f) {
   const card = el('div', 'alert');
   const info = el('div');
+  const say = el('div', 'say', 'Say on the intercom');
   const name = el('div', 'name', f.child || f.family);
   const where = el('div', 'where', 'Room ' + f.classroom);
   const car = el('div', 'sub');
   const ask = el('div', 'ask');
-  info.append(name, where, car, ask);
+  info.append(say, name, where, car, ask);
   const btn = el('button', 'announce', 'Announced');
   btn.type = 'button';
   btn.addEventListener('click', () => callDone(card, f));
@@ -311,7 +337,6 @@ function makeAlert(f) {
 function updateAlert(card, f) {
   card._f = f;
   const lines = [];
-  if (f.child && f.family) lines.push(f.family);
   if (f.notes) lines.push('Car: ' + f.notes);
   const text = lines.join('. ');
   if (card._parts.car.textContent !== text) card._parts.car.textContent = text;
@@ -364,7 +389,12 @@ paintSoundButton();
 let seenAlerts = new Set();
 
 function draw(families) {
-  latest = families.slice().sort((a, b) => new Date(a.checkInTime) - new Date(b.checkInTime));
+  everyone = families.slice();
+  const sorted = everyone.slice().sort((a, b) => new Date(a.checkInTime) - new Date(b.checkInTime));
+  latest = sorted.filter(f => f.status !== 'GotEm');
+  const picked = sorted.filter(f => f.status === 'GotEm');
+  reconcile($('pickedList'), picked, keyOf, makePickedRow, updatePickedRow);
+  $('pickedSec').hidden = picked.length === 0;
 
   // Parents asking for a call, oldest request first
   const alerts = latest.filter(f => f.call === 'requested')
@@ -390,12 +420,13 @@ function draw(families) {
 
 async function callDone(card, f) {
   card.remove();
+  everyone = everyone.map(x => keyOf(x) === keyOf(f) ? Object.assign({}, x, { call: 'announced' }) : x);
   latest = latest.map(x => keyOf(x) === keyOf(f) ? Object.assign({}, x, { call: 'announced' }) : x);
   $('alerts').hidden = $('alertList').children.length === 0;
   $('alertCount').textContent = $('alertList').children.length;
   $('listTitle').hidden = $('alertList').children.length === 0;
   try {
-    const res = await callApi({ action: 'callclear', family: f.family });
+    const res = await callApi({ action: 'callclear', family: f.family, child: f.child || '' });
     if (!res.ok) throw new Error('rejected');
     showBanner('');
   } catch (e) {
@@ -408,16 +439,12 @@ async function callDone(card, f) {
 
 async function markPicked(row, f, btn) {
   btn.disabled = true;
-  // remove it right away; if the server says no, we put it back
-  row.remove();
+  // move it to "Already picked up" right away; if the server says no,
+  // the next refresh puts it back
   Array.from($('alertList').children).forEach(c => { if (c._f && keyOf(c._f) === keyOf(f)) c.remove(); });
-  $('alerts').hidden = $('alertList').children.length === 0;
-  $('alertCount').textContent = $('alertList').children.length;
-  latest = latest.filter(x => keyOf(x) !== keyOf(f));
-  $('empty').hidden = latest.length > 0;
-  $('count').textContent = latest.length ? latest.length + ' waiting' : '';
+  draw(everyone.map(x => keyOf(x) === keyOf(f) ? Object.assign({}, x, { status: 'GotEm' }) : x));
   try {
-    const res = await callApi({ action: 'gotem', family: f.family });
+    const res = await callApi({ action: 'gotem', family: f.family, child: f.child || '' });
     if (!res.ok) throw new Error('rejected');
     showBanner('');
   } catch (e) {
@@ -433,7 +460,7 @@ async function tick() {
   inflight = true;
   const startedAt = Date.now();
   try {
-    const data = await callApi({ action: 'staffList', v: version }, 9000);
+    const data = await callApi({ action: 'staffList', all: '1', v: version }, 9000);
     if (!data.ok) throw new Error('bad response');
     if (fails >= 3) showBanner('');
     fails = 0;

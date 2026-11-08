@@ -68,7 +68,26 @@
     background: var(--vest);
     padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 12px;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
+  .info-btn {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 120ms var(--ease-out);
+  }
+  .info-btn:active { transform: scale(0.96); }
+  .info-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .info-btn[hidden] { display: none; }
   header.top .brand {
     font-family: var(--display);
     font-weight: 700;
@@ -104,11 +123,12 @@
   .who {
     font-family: var(--display);
     font-weight: 700;
-    font-size: clamp(52px, 17vw, 76px);
+    font-size: clamp(44px, 14vw, 68px);
     line-height: 0.95;
     margin: 0;
     overflow-wrap: anywhere;
   }
+  .who.sm { font-size: clamp(36px, 11vw, 48px); }
   .room-tag {
     display: inline-block;
     margin-top: 12px;
@@ -333,6 +353,126 @@
     overflow-wrap: anywhere;
   }
 
+
+  /* ---------- Setup: one block per child ---------- */
+  .child-block {
+    margin-bottom: 16px;
+    padding: 14px 14px 2px;
+    background: var(--white);
+    border: 2px solid var(--line);
+    border-radius: 16px;
+  }
+  .child-block .block-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .child-block .field input { background: var(--concrete); }
+  .child-block .field input:disabled { opacity: 0.6; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .locked-note { margin: 0 0 12px; color: var(--muted); font-size: 16px; }
+
+  /* ---------- Kid cards (in line / pickers) ---------- */
+  .kid-card {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: var(--white);
+    border: 2px solid var(--line);
+    border-radius: 16px;
+  }
+  .kid-card .status { margin-top: 12px; }
+  .kid-card .call { margin-top: 14px; }
+  .kid-card.picked { background: transparent; border-style: dashed; }
+  .kid-card.picked .line { display: flex; align-items: center; gap: 12px; }
+  .kid-card.picked .mini-mark {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--go);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .kid-card.picked .mini-mark svg { width: 20px; height: 20px; }
+  .kid-card.picked .who { font-size: 30px; }
+  .kid-card.picked .sub { color: var(--go); font-weight: 700; font-size: 16px; }
+  .chip.wide { width: 100%; justify-content: space-between; min-height: 56px; margin-bottom: 8px; }
+  .picklist { margin-bottom: 8px; }
+
+  /* ---------- Yes / No ---------- */
+  .yn { display: flex; gap: 12px; }
+  .yn button {
+    flex: 1;
+    height: 68px;
+    border: none;
+    border-radius: 16px;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 32px;
+    cursor: pointer;
+    transition: transform 120ms var(--ease-out);
+  }
+  .yn button:active { transform: scale(0.97); }
+  .yn button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .yn .yes { background: var(--vest); color: var(--ink); box-shadow: inset 0 0 0 3px var(--ink); }
+  .yn .no { background: var(--ink); color: var(--white); }
+  .yn.small button { height: 52px; font-size: 26px; border-radius: 12px; }
+  .ask { margin: 0 0 12px; font-weight: 600; }
+  .call-state.wait { border-left-color: var(--ink); }
+
+  /* ---------- Slide to announce ---------- */
+  .slider {
+    position: relative;
+    height: 76px;
+    border-radius: 38px;
+    background: var(--ink);
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .slider-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: var(--go);
+  }
+  .slider-label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-left: 76px;
+    padding-right: 14px;
+    white-space: nowrap;
+    color: var(--white);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(15px, 4.4vw, 27px);
+    letter-spacing: 0.01em;
+    pointer-events: none;
+  }
+  .slider-thumb {
+    position: absolute;
+    left: 6px; top: 6px;
+    width: 64px; height: 64px;
+    border: none;
+    border-radius: 50%;
+    background: var(--vest);
+    color: var(--ink);
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+    touch-action: none;
+    transition: transform 220ms var(--ease-out);
+  }
+  .slider-fill { transition: width 220ms var(--ease-out); }
+  .slider.drag .slider-thumb, .slider.drag .slider-fill { transition: none; }
+  .slider-thumb:focus-visible { outline: 3px solid var(--white); outline-offset: 2px; }
+  .slider.done .slider-label { opacity: 0.85; }
+
   /* ---------- Home-screen hint ---------- */
   .hint {
     margin-top: 26px;
@@ -351,7 +491,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .confirm-mark { animation: none; }
-    .chip, .cta, .btn-quiet { transition: none; }
+    .chip, .cta, .btn-quiet, .yn button, .info-btn { transition: none; }
+    .slider-thumb, .slider-fill { transition: none; }
   }
   @media (max-width: 360px) {
     .cta { font-size: 30px; }
@@ -361,7 +502,7 @@
 </head>
 <body>
 <div class="app">
-  <header class="top"><div class="brand">CarRyde</div></header>
+  <header class="top"><div class="brand">CarRyde</div><button class="info-btn" id="infoBtn" type="button" hidden>My info</button></header>
   <main id="main"></main>
   <div class="bar" id="bar" hidden></div>
 </div>
@@ -370,9 +511,10 @@
 const API = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
 
 const PROFILE_KEY = 'carpool_profile';
-const TRIP_KEY = 'carpool_trip_v2';
+const TRIP_KEY = 'carpool_trip_v3';
 const HINT_KEY = 'carryde_hint_dismissed';
 const TRIP_MAX_AGE = 3 * 60 * 60 * 1000; // an old trip never greets you tomorrow
+const MAX_KIDS = 6;
 
 const COLORS = [
   ['White', '#FFFFFF'], ['Black', '#1C2128'], ['Silver', '#BFC4CA'], ['Gray', '#7B828A'],
@@ -387,7 +529,7 @@ function readJSON(key) {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
   } catch (e) {
-    return memory[key] ? JSON.parse(memory[key]) : null;
+    try { return memory[key] ? JSON.parse(memory[key]) : null; } catch (e2) { return null; }
   }
 }
 function writeJSON(key, value) {
@@ -400,21 +542,66 @@ function removeKey(key) {
   try { localStorage.removeItem(key); } catch (e) {}
 }
 
+/* ---------- people ---------- */
+function uid() {
+  return 'k' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+}
+function squish(s) { return String(s == null ? '' : s).trim().replace(/\s+/g, ' '); }
+function fullName(c) { return squish((c.first || '') + ' ' + (c.last || '')); }
+
+// Older versions saved { family, child, classroom }. Turn that into the
+// new shape: one entry per child, with first and last name apart.
+function normalizeProfile(p) {
+  if (!p || typeof p !== 'object') return { profile: null, changed: false };
+  if (Array.isArray(p.children)) {
+    let changed = false;
+    p.children.forEach(c => { if (!c.id) { c.id = uid(); changed = true; } });
+    return { profile: p, changed: changed };
+  }
+  if (p.family || p.child || p.classroom) {
+    const parts = squish(p.child).split(' ').filter(Boolean);
+    const first = parts.shift() || '';
+    const last = parts.join(' ');
+    return {
+      profile: { family: squish(p.family), children: [{ id: uid(), first: first, last: last, room: squish(p.classroom) }] },
+      changed: true
+    };
+  }
+  return { profile: null, changed: false };
+}
+
 /* ---------- state ---------- */
-let profile = readJSON(PROFILE_KEY);
-let trip = loadTrip();
-let draft = { color: '', type: '', text: '' };
-let net = 'idle'; // idle | sending | sent | retrying
+removeKey('carpool_trip_v2'); // the old one-child trip can't be used any more
+let profile = (function () {
+  const r = normalizeProfile(readJSON(PROFILE_KEY));
+  if (r.profile && r.changed) writeJSON(PROFILE_KEY, r.profile);
+  return r.profile;
+})();
+let trip = loadTrip();           // { started, ts, notes, car, kids: { id: { status, sent, call, ... } } }
+let draft = (trip.started && trip.car) ? Object.assign({ color: '', type: '', text: '' }, trip.car) : { color: '', type: '', text: '' };
+let flow = '';                   // '', 'grounds', 'notyet', 'slide' (only while checking in)
+let callStep = null;             // { id, step } while a parent is going through the intercom questions
+let selected = null;             // Set of child ids being picked up
 let flushing = false;
 let retryTimer = null;
 let installPrompt = null;
+const knet = {};                 // per-child network state: sending | sent | retrying
 
 function loadTrip() {
   const t = readJSON(TRIP_KEY);
-  if (!t || !t.ts || Date.now() - t.ts > TRIP_MAX_AGE) return { stage: 'idle' };
+  if (!t || !t.started || !t.ts || !t.kids || Date.now() - t.ts > TRIP_MAX_AGE) return {};
   return t;
 }
 function saveTrip() { writeJSON(TRIP_KEY, trip); }
+function childById(id) { return profile && profile.children.find(c => c.id === id); }
+function selIds() {
+  const all = profile.children.map(c => c.id);
+  if (!selected) selected = new Set(all);
+  selected.forEach(id => { if (all.indexOf(id) < 0) selected.delete(id); });
+  if (selected.size === 0) all.forEach(id => selected.add(id));
+  return all.filter(id => selected.has(id));
+}
+function tripIds() { return trip.started ? Object.keys(trip.kids).filter(id => childById(id)) : []; }
 
 /* ---------- tiny DOM helper (text only, never raw HTML) ---------- */
 function h(tag, attrs, ...kids) {
@@ -464,46 +651,61 @@ async function callApi(action, params, timeoutMs) {
   }
 }
 
-// Sends whatever hasn't reached the server yet, in order. The screen
-// changes the instant a button is tapped; this runs behind it and keeps
-// retrying if the signal drops (common at a pickup line).
+// Sends whatever hasn't reached the server yet, one child at a time.
+// The screen changes the instant a button is tapped; this runs behind
+// it and keeps retrying if the signal drops (common at a pickup line).
 async function flush() {
   if (flushing) return;
   flushing = true;
   clearTimeout(retryTimer);
   try {
-    while (trip.stage === 'inline' || trip.stage === 'done') {
-      if (!trip.sent) {
-        setNet('sending');
-        const res = await callApi('checkin', {
-          family: profile.family, classroom: profile.classroom,
-          child: profile.child || '', notes: trip.notes || ''
-        });
-        if (!res.ok) { rejected(); return; }
-        trip.sent = true;
-        saveTrip();
-        setNet('sent');
-        continue;
+    let progress = true;
+    while (progress && trip.started) {
+      progress = false;
+      for (const id of Object.keys(trip.kids)) {
+        const k = trip.kids[id];
+        const c = childById(id);
+        if (!k || !c) continue;
+        const name = fullName(c);
+
+        if ((k.status === 'inline' || k.status === 'picked') && !k.sent) {
+          setNet(id, 'sending');
+          const res = await callApi('checkin', {
+            family: profile.family, classroom: c.room, child: name, notes: trip.notes || ''
+          });
+          if (!res.ok) { rejected(); return; }
+          k.sent = true;
+          saveTrip();
+          setNet(id, 'sent');
+          progress = true;
+          continue;
+        }
+        if (k.status === 'inline' && k.call === 'pending') {
+          // Staff hear about it only after the check-in has gone through.
+          const res = await callApi('callchild', { family: profile.family, child: name });
+          if (res.ok) {
+            k.call = 'sent';
+          } else if (!k.recheck) {
+            k.recheck = true;   // maybe the row is gone; check in again, then retry once
+            k.sent = false;
+          } else {
+            k.call = 'failed';
+          }
+          saveTrip();
+          paintCall(id);
+          progress = true;
+          continue;
+        }
+        if (k.status === 'picked' && !k.pickedSent) {
+          await callApi('gotem', { family: profile.family, child: name });
+          k.pickedSent = true;
+          saveTrip();
+          progress = true;
+        }
       }
-      if (trip.stage === 'inline' && trip.call === 'pending') {
-        // Staff hear about it only after the check-in has gone through.
-        const res = await callApi('callchild', { family: profile.family });
-        trip.call = res.ok ? 'sent' : 'failed';
-        saveTrip();
-        paintCall();
-        continue;
-      }
-      if (trip.stage === 'done' && !trip.pickedSent) {
-        const res = await callApi('gotem', { family: profile.family });
-        if (!res.ok) { rejected(); return; }
-        trip.pickedSent = true;
-        saveTrip();
-        continue;
-      }
-      break;
     }
   } catch (e) {
-    setNet('retrying');
+    Object.keys(trip.kids || {}).forEach(id => { if (!trip.kids[id].sent) setNet(id, 'retrying'); });
     retryTimer = setTimeout(flush, 2500);
   } finally {
     flushing = false;
@@ -512,24 +714,27 @@ async function flush() {
 
 function rejected() {
   // The server understood but refused (for example, a missing room).
-  trip = { stage: 'idle', error: 'We couldn’t check you in. Check the family name and room, then try again.' };
+  trip = {};
   saveTrip();
-  net = 'idle';
-  render();
+  flow = '';
+  render(true);
 }
 
-function setNet(state) {
-  net = state;
-  const el = document.getElementById('status');
-  if (el) paintStatus(el);
+function setNet(id, state) {
+  knet[id] = state;
+  paintStatus(id);
 }
 
-function paintStatus(el) {
+function paintStatus(id) {
+  const el = document.querySelector('[data-kid="' + id + '"]');
+  const c = childById(id);
+  const k = trip.kids && trip.kids[id];
+  if (!el || !c || !k) return;
   el.replaceChildren();
   el.className = 'status';
-  const room = 'Room ' + profile.classroom;
-  // After a page reload, `net` starts empty; trust what was saved.
-  const state = net === 'idle' && trip.sent ? 'sent' : net;
+  const room = 'Room ' + c.room;
+  let state = knet[id];
+  if (!state || state === 'idle') state = k.sent ? 'sent' : 'sending';
   if (state === 'sending') {
     el.append(h('span', { class: 'spin' }), 'Sending to ' + room + '…');
   } else if (state === 'sent') {
@@ -542,57 +747,152 @@ function paintStatus(el) {
   }
 }
 
-/* ---------- ask staff to call my child ---------- */
-let callArmed = false;
-let callArmTimer = null;
+/* ---------- "my child isn't with me yet" (intercom) ----------
+   Three steps, and staff hear nothing until the last one is finished:
+   1) are you on school grounds?  2) are you sure?  3) slide to announce. */
+function askAnnounce(id) {
+  const prev = callStep && callStep.id;
+  callStep = { id: id, step: 'grounds' };
+  if (prev && prev !== id) paintCall(prev);
+  paintCall(id);
+}
+function setStep(id, step) { callStep = step ? { id: id, step: step } : null; paintCall(id); }
 
-function requestCall() {
-  if (!callArmed) {
-    // First tap only arms the button, so a stray tap can't send an
-    // intercom announcement.
-    callArmed = true;
-    clearTimeout(callArmTimer);
-    callArmTimer = setTimeout(() => { callArmed = false; paintCall(); }, 5000);
-    paintCall();
-    return;
-  }
-  callArmed = false;
-  clearTimeout(callArmTimer);
-  trip.call = 'pending';
+function confirmAnnounce(id) {
+  const k = trip.kids[id];
+  if (!k || k.call === 'pending') return;      // a second slide can't send twice
+  callStep = null;
+  k.call = 'pending';
+  k.recheck = false;
   saveTrip();
-  paintCall();
+  paintCall(id);
   flush();
 }
 
-function paintCall() {
-  const box = document.getElementById('callBox');
-  if (!box || !profile) return;
-  const name = profile.child || 'your child';
+function paintCall(id) {
+  const box = document.querySelector('[data-call="' + id + '"]');
+  const c = childById(id);
+  const k = trip.kids && trip.kids[id];
+  if (!box || !c || !k) return;
+  const name = fullName(c);
+  const step = callStep && callStep.id === id ? callStep.step : '';
   box.replaceChildren();
-  if (trip.call === 'pending') {
+  if (k.call === 'pending') {
     box.append(h('div', { class: 'call-state' }, h('span', { class: 'spin' }), 'Telling staff…'));
-  } else if (trip.call === 'sent') {
+  } else if (step === 'grounds') {
+    box.append(
+      h('p', { class: 'ask', text: 'Are you currently on school grounds?' }),
+      h('div', { class: 'yn small' },
+        h('button', { class: 'yes', type: 'button', onclick: () => setStep(id, 'sure') }, 'YES'),
+        h('button', { class: 'no', type: 'button', onclick: () => setStep(id, 'notyet') }, 'NO')),
+      h('button', { class: 'link-btn', type: 'button', onclick: () => setStep(id, '') }, 'Cancel'));
+  } else if (step === 'notyet') {
+    box.append(
+      h('p', { class: 'call-state wait', role: 'status', text: 'Please wait until you arrive on school grounds before announcing your child’s pickup.' }),
+      h('button', { class: 'link-btn', type: 'button', onclick: () => setStep(id, '') }, 'OK'));
+  } else if (step === 'sure') {
+    box.append(
+      h('p', { class: 'ask' }, 'Are you sure you want to announce ', h('strong', { text: name }), ' for pickup?'),
+      h('div', { class: 'yn small' },
+        h('button', { class: 'yes', type: 'button', onclick: () => setStep(id, 'slide') }, 'YES'),
+        h('button', { class: 'no', type: 'button', onclick: () => setStep(id, '') }, 'NO')));
+  } else if (step === 'slide') {
+    box.append(
+      h('p', { class: 'ask', text: 'Slide to tell staff. Only do this while parked.' }),
+      makeSlider('Slide to Announce Pickup', () => confirmAnnounce(id)),
+      h('button', { class: 'link-btn', type: 'button', onclick: () => setStep(id, '') }, 'Cancel'));
+  } else if (k.call === 'sent') {
     box.append(
       h('div', { class: 'call-state' }, 'Staff has been told. They’ll call ' + name + ' on the intercom.'),
-      h('button', { class: 'link-btn', type: 'button', onclick: () => { trip.call = ''; saveTrip(); callArmed = true; paintCall(); } }, 'Ask again'));
+      h('button', { class: 'link-btn', type: 'button', onclick: () => askAnnounce(id) }, 'Announce again'));
   } else {
-    if (trip.call === 'failed') {
+    if (k.call === 'failed') {
       box.append(h('p', { class: 'call-state bad', role: 'alert' }, 'We couldn’t reach staff. Try again.'));
     }
     box.append(
-      h('button', { class: 'btn-call' + (callArmed ? ' armed' : ''), id: 'callBtn', type: 'button', onclick: requestCall },
-        callArmed ? 'Tap again to ask staff to call ' + name : 'My child isn’t with me yet'));
-    if (!callArmed) box.append(h('p', { class: 'call-help', text: 'Staff will call ' + name + ' on the intercom.' }));
+      h('button', { class: 'btn-call', type: 'button', onclick: () => askAnnounce(id) }, 'My child isn’t with me yet'),
+      h('p', { class: 'call-help', text: 'Staff will call ' + name + ' on the intercom.' }));
   }
+}
+
+/* ---------- slide to announce ---------- */
+function makeSlider(label, onDone) {
+  let done = false, dragging = false, startX = 0, pos = 0, max = 1;
+  const thumb = h('button', {
+    class: 'slider-thumb', type: 'button', role: 'slider', 'aria-label': label + ' (use the right arrow key)',
+    'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': 0
+  }, '→');
+  const fill = h('div', { class: 'slider-fill' });
+  const track = h('div', { class: 'slider' }, fill, h('div', { class: 'slider-label', text: label }), thumb);
+
+  function measure() { max = Math.max(1, track.clientWidth - thumb.offsetWidth - 12); }
+  function set(p) {
+    pos = Math.max(0, Math.min(max, p));
+    thumb.style.transform = 'translateX(' + pos + 'px)';
+    fill.style.width = (pos > 0 ? pos + 70 : 0) + 'px';
+    thumb.setAttribute('aria-valuenow', String(Math.round(pos / max * 100)));
+  }
+  function finish() {
+    if (done) return;       // lock: one announcement per slide
+    done = true;
+    dragging = false;
+    track.classList.remove('drag');
+    track.classList.add('done');
+    set(max);
+    thumb.setAttribute('aria-valuenow', '100');
+    try { navigator.vibrate && navigator.vibrate(30); } catch (e) {}
+    setTimeout(onDone, 160);
+  }
+  function release() {
+    if (!dragging || done) return;
+    dragging = false;
+    track.classList.remove('drag');
+    if (pos >= max * 0.95) finish(); else set(0);
+  }
+  thumb.addEventListener('pointerdown', e => {
+    if (done || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    measure();
+    dragging = true;
+    startX = e.clientX - pos;
+    track.classList.add('drag');
+    try { thumb.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  thumb.addEventListener('pointermove', e => {
+    if (!dragging || done) return;
+    set(e.clientX - startX);
+  });
+  thumb.addEventListener('pointerup', release);
+  thumb.addEventListener('pointercancel', release);
+  thumb.addEventListener('lostpointercapture', release);
+  thumb.addEventListener('keydown', e => {
+    if (done) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault(); measure(); set(pos + max * 0.25);
+      if (pos >= max * 0.95) finish();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault(); measure(); set(pos - max * 0.25);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); set(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); measure(); set(max); finish();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();   // a plain press must not announce anything
+    }
+  });
+  return track;
 }
 
 /* ---------- screens ---------- */
 const main = document.getElementById('main');
 const bar = document.getElementById('bar');
+const infoBtn = document.getElementById('infoBtn');
+infoBtn.addEventListener('click', () => renderSetup(true));
 
 // replaceChildren would print the word "null" for empty slots, so drop them.
 function fillMain(...nodes) {
-  main.replaceChildren(...nodes.filter(Boolean));
+  main.replaceChildren(...nodes.flat().filter(Boolean));
+  main.scrollTop = 0;
 }
 
 function showBar(node) {
@@ -602,51 +902,113 @@ function showBar(node) {
   bar.hidden = false;
 }
 
-function render() {
-  if (!profile) return renderSetup();
-  if (trip.stage === 'inline') return renderInLine();
-  if (trip.stage === 'done') return renderDone();
-  return renderIdle();
+function render(showRejected) {
+  infoBtn.hidden = !profile;
+  if (!profile) return renderSetup(false);
+  if (trip.started && tripIds().length) {
+    flow = '';
+    return tripIds().some(id => trip.kids[id].status === 'inline') ? renderInLine() : renderDone();
+  }
+  return renderIdle(showRejected ? 'We couldn’t check you in. Check your family name and rooms in My info, then try again.' : '');
 }
 
-function renderSetup(editing) {
-  const p = editing || {};
-  let errorText = '';
-  const err = h('p', { class: 'form-error', role: 'alert', hidden: true });
-  const family = h('input', { id: 'f_family', value: p.family || '', placeholder: 'Smith family', autocomplete: 'off', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 60 });
-  const child = h('input', { id: 'f_child', value: p.child || '', placeholder: 'Jordan', autocomplete: 'off', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 40 });
-  const room = h('input', { id: 'f_room', value: p.classroom || '', placeholder: '108', autocomplete: 'off', autocapitalize: 'characters', enterkeyhint: 'done', maxlength: 12 });
+function nameBlock(c, small) { return h('p', { class: 'who' + (small ? ' sm' : ''), text: fullName(c) }); }
+function roomTag(c) { return h('span', { class: 'room-tag', text: 'Room ' + c.room }); }
+
+/* --- My info / first-time setup --- */
+function renderSetup(editing, startError) {
+  infoBtn.hidden = true;
+  flow = '';
+  const wc = editing
+    ? { family: profile.family, children: profile.children.map(c => Object.assign({}, c)) }
+    : { family: '', children: [{ id: uid(), first: '', last: '', room: '' }] };
+  const locked = new Set(tripIds());      // names can't change while a child is in line
+  let error = startError || '';
+  let focusId = null;
+
+  function field(label, id, value, attrs, onInput, disabled) {
+    const input = h('input', Object.assign({ id: id, value: value, autocomplete: 'off', disabled: disabled }, attrs));
+    input.addEventListener('input', () => onInput(input.value));
+    return h('div', { class: 'field' }, h('label', { for: id, text: label }), input);
+  }
 
   function save() {
-    const next = {
-      family: family.value.trim().replace(/\s+/g, ' '),
-      child: child.value.trim().replace(/\s+/g, ' '),
-      classroom: room.value.trim().replace(/\s+/g, ' ')
-    };
-    if (!next.family || !next.child || !next.classroom) {
-      err.textContent = 'Fill in all three boxes so the classroom knows who to look for.';
-      err.hidden = false;
-      return;
+    const family = squish(wc.family);
+    const kids = wc.children.map(c => ({ id: c.id, first: squish(c.first), last: squish(c.last), room: squish(c.room) }));
+    let msg = '';
+    if (!family) msg = 'Enter your family name.';
+    for (let i = 0; !msg && i < kids.length; i++) {
+      const who = kids.length > 1 ? 'child ' + (i + 1) + '’s' : 'your child’s';
+      if (!kids[i].first) msg = 'Enter ' + who + ' first name.';
+      else if (!kids[i].last) msg = 'Enter ' + who + ' last name. Staff say the full name on the intercom.';
+      else if (!kids[i].room) msg = 'Enter ' + who + ' classroom number.';
     }
-    profile = next;
-    writeJSON(PROFILE_KEY, profile);
-    trip = { stage: 'idle' };
-    saveTrip();
-    render();
-  }
-  room.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+    if (!msg) {
+      const names = kids.map(c => fullName(c).toLowerCase());
+      if (new Set(names).size !== names.length) msg = 'Each child needs a different name.';
+    }
+    if (msg) { error = msg; draw(); return; }
 
-  fillMain(
-    h('h2', { class: 'title', text: editing ? 'Change your info' : 'Set up once' }),
-    h('p', { class: 'lead', text: 'This stays on this phone, so next time it’s one tap.' }),
-    h('div', { class: 'field' }, h('label', { for: 'f_family', text: 'Family name' }), family),
-    h('div', { class: 'field' }, h('label', { for: 'f_child', text: 'Child’s name' }), child),
-    h('div', { class: 'field' }, h('label', { for: 'f_room', text: 'Classroom number' }), room),
-    err
-  );
-  showBar(h('button', { class: 'cta cta-go', type: 'button', onclick: save }, 'Save'));
+    let needFlush = false;
+    kids.forEach(c => {
+      const k = trip.started && trip.kids[c.id];
+      const before = childById(c.id);
+      if (k && before && before.room !== c.room) {   // fixed a wrong room: tell the TV again
+        if (k.status === 'inline') { k.sent = false; delete knet[c.id]; needFlush = true; }
+      }
+    });
+    profile = { family: family, children: kids };
+    writeJSON(PROFILE_KEY, profile);
+    selected = null;
+    if (trip.started) saveTrip();
+    render();
+    if (needFlush) flush();
+  }
+
+  function draw() {
+    const blocks = wc.children.map((c, i) => {
+      const isLocked = locked.has(c.id);
+      return h('div', { class: 'child-block' },
+        h('div', { class: 'block-title' },
+          h('span', { text: wc.children.length > 1 ? 'Child ' + (i + 1) : 'Your child' }),
+          (wc.children.length > 1 && !isLocked)
+            ? h('button', { class: 'link-btn', type: 'button', onclick: () => { wc.children.splice(i, 1); error = ''; draw(); } }, 'Remove')
+            : null),
+        h('div', { class: 'row2' },
+          field('First name', 'f_first_' + c.id, c.first, { placeholder: 'Jordan', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 30 }, v => { c.first = v; }, isLocked),
+          field('Last name', 'f_last_' + c.id, c.last, { placeholder: 'Smith', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 30 }, v => { c.last = v; }, isLocked)),
+        field('Classroom number', 'f_room_' + c.id, c.room, { placeholder: '108', autocapitalize: 'characters', enterkeyhint: 'done', maxlength: 12 }, v => { c.room = v; }, false),
+        isLocked ? h('p', { class: 'locked-note', text: 'Name is locked while this child is in line. You can still fix the room.' }) : null);
+    });
+
+    const addBtn = wc.children.length < MAX_KIDS
+      ? h('button', { class: 'btn-quiet', type: 'button', style: 'width:100%;margin-bottom:16px', onclick: () => {
+          const nc = { id: uid(), first: '', last: '', room: '' };
+          wc.children.push(nc);
+          focusId = 'f_first_' + nc.id;
+          error = '';
+          draw();
+        } }, '+ Add another child')
+      : null;
+
+    fillMain(
+      h('h2', { class: 'title', text: editing ? 'My info' : 'Set up once' }),
+      h('p', { class: 'lead', text: editing
+        ? 'Fix anything that’s wrong. It saves on this phone.'
+        : 'This stays on this phone, so next time it’s one tap. Add each child, even if they’re in different classrooms.' }),
+      field('Family name', 'f_family', wc.family, { placeholder: 'Smith family', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 60 }, v => { wc.family = v; }, trip.started && tripIds().length > 0),
+      blocks,
+      addBtn,
+      error ? h('p', { class: 'form-error', role: 'alert', text: error }) : null,
+      editing ? h('button', { class: 'link-btn', type: 'button', onclick: () => render() }, 'Cancel') : null
+    );
+    showBar(h('button', { class: 'cta cta-go', type: 'button', onclick: save }, editing ? 'Save changes' : 'Save'));
+    if (focusId) { const el = document.getElementById(focusId); if (el) el.focus(); focusId = null; }
+  }
+  draw();
 }
 
+/* --- car details (optional; also editable after checking in) --- */
 function currentNote() {
   const vehicle = [draft.color, draft.type].filter(Boolean).join(' ');
   return [vehicle, draft.text.trim()].filter(Boolean).join(', ');
@@ -677,88 +1039,159 @@ function renderChips() {
   );
 }
 
-function renderIdle() {
-  const name = profile.child || profile.family;
+function carInput(id) {
   const input = h('input', {
-    class: 'text-input', id: 'extra', value: draft.text, maxlength: 60,
-    placeholder: 'Anything else? Back of the lot, hazards on…',
+    class: 'text-input', id: id, value: draft.text, maxlength: 60,
+    placeholder: 'Make and model, like Honda Odyssey',
     autocomplete: 'off', autocapitalize: 'sentences', enterkeyhint: 'done'
   });
   input.addEventListener('input', () => { draft.text = input.value; });
+  return input;
+}
+
+/* --- before checking in --- */
+function renderIdle(errorText) {
+  const kids = profile.children;
+  const ids = selIds();
+  const input = carInput('extra');
   chipHost = h('div');
 
-  const errorBox = trip.error
-    ? h('p', { class: 'form-error', role: 'alert', text: trip.error, style: 'margin-top:16px' })
+  const missingLast = kids.filter(c => !c.last);
+  const notice = missingLast.length
+    ? h('div', { class: 'hint', style: 'margin-bottom:16px' },
+        h('p', null, h('strong', { text: 'Add your child’s last name. ' }), 'Staff need the full name to call them on the intercom.'),
+        h('div', { class: 'hint-actions' },
+          h('button', { class: 'btn-quiet', type: 'button', onclick: () => renderSetup(true) }, 'Add last name')))
     : null;
 
+  let people;
+  if (kids.length === 1) {
+    people = [nameBlock(kids[0]), roomTag(kids[0])];
+  } else {
+    const pickHost = h('div', { class: 'picklist' });
+    const drawPick = () => {
+      const cur = selIds();
+      pickHost.replaceChildren(...kids.map(c => {
+        const on = cur.indexOf(c.id) >= 0;
+        const b = h('button', { class: 'chip wide', type: 'button', 'aria-pressed': on ? 'true' : 'false' },
+          h('span', { text: fullName(c) }), h('span', { text: 'Room ' + c.room }));
+        b.addEventListener('click', () => {
+          if (on && cur.length === 1) return;     // at least one child stays selected
+          if (on) selected.delete(c.id); else selected.add(c.id);
+          drawPick();
+        });
+        return b;
+      }));
+    };
+    drawPick();
+    people = [
+      h('span', { class: 'group-label', text: 'Who are you picking up?' }),
+      pickHost,
+      h('p', { class: 'call-help', style: 'margin-top:0', text: 'Children in different classrooms each show up on their own room’s TV.' })
+    ];
+  }
+
   fillMain(
-    h('p', { class: 'who', text: name }),
-    h('span', { class: 'room-tag', text: 'Room ' + profile.classroom }),
-    errorBox,
+    errorText ? h('p', { class: 'form-error', role: 'alert', text: errorText }) : null,
+    notice,
+    people,
     h('div', { class: 'details' },
       h('p', { class: 'lead', style: 'margin-bottom:12px', text: 'Optional: help your child spot your car.' }),
       chipHost,
       h('div', { class: 'field', style: 'margin-top:4px' }, input)),
-    h('button', { class: 'link-btn', type: 'button', onclick: () => renderSetup(profile) }, 'Not your info? Change it')
+    hintCard()
   );
   renderChips();
-  showBar(h('button', { class: 'cta cta-go', id: 'hereBtn', type: 'button', onclick: arrive }, 'I’m here'));
+  showBar(h('button', { class: 'cta cta-go', id: 'hereBtn', type: 'button', onclick: startArrive }, 'I’m here'));
+}
+
+function startArrive() {
+  const ids = selIds();
+  if (!ids.length) return;
+  if (profile.children.some(c => ids.indexOf(c.id) >= 0 && !c.last)) {
+    renderSetup(true, 'Add your child’s last name first, so staff know exactly who to call.');
+    return;
+  }
+  arrive();
 }
 
 function arrive() {
-  const notes = currentNote();
-  draft = { color: '', type: '', text: '' };
-  trip = { stage: 'inline', ts: Date.now(), sent: false, notes: notes };
+  if (trip.started && tripIds().length) return;   // already checked in: never announce twice
+  const ids = selIds();
+  const kids = {};
+  ids.forEach(id => { kids[id] = { status: 'inline', sent: false, call: '' }; });
+  trip = { started: true, ts: Date.now(), notes: currentNote(), car: Object.assign({}, draft), kids: kids };
   saveTrip();
   try { navigator.vibrate && navigator.vibrate(25); } catch (e) {}
   render();
   flush();
 }
 
+/* --- in line --- */
+function kidCard(id, multi) {
+  const c = childById(id);
+  const k = trip.kids[id];
+  if (k.status === 'picked') {
+    return h('div', { class: 'kid-card picked' },
+      h('div', { class: 'line' },
+        h('div', { class: 'mini-mark' }, svgCheck()),
+        h('div', null, h('p', { class: 'who', text: fullName(c) }), h('div', { class: 'sub', text: 'Picked up' }))));
+  }
+  return h('div', { class: 'kid-card' },
+    nameBlock(c, multi),
+    roomTag(c),
+    h('div', { class: 'status', role: 'status', 'aria-live': 'polite', 'data-kid': id }),
+    h('div', { class: 'call', 'data-call': id }),
+    multi ? h('button', { class: 'btn-quiet', type: 'button', style: 'margin-top:14px;width:100%', onclick: () => pickedUp([id]) }, 'Got ’em') : null);
+}
+
 function renderInLine() {
-  const name = profile.child || profile.family;
-  const status = h('div', { id: 'status', class: 'status', role: 'status', 'aria-live': 'polite' });
-  paintStatus(status);
+  const ids = tripIds();
+  const multi = ids.length > 1;
+  const remaining = ids.filter(id => trip.kids[id].status === 'inline');
+  const input = carInput('editNote');
+  chipHost = h('div');
 
-  const carLine = trip.notes ? h('p', { class: 'car-line', text: trip.notes }) : null;
-
-  const edit = h('input', {
-    class: 'text-input', id: 'editNote', value: trip.notes || '', maxlength: 80,
-    placeholder: 'Silver SUV, back of the lot', autocomplete: 'off', enterkeyhint: 'send'
-  });
-  function sendNote() {
-    const value = edit.value.trim().replace(/\s+/g, ' ');
-    if (value === (trip.notes || '')) return;
-    trip.notes = value;
-    trip.sent = false;
+  function sendCar() {
+    const note = currentNote();
+    trip.car = Object.assign({}, draft);
+    if (note === (trip.notes || '')) { render(); return; }
+    trip.notes = note;
+    ids.forEach(id => {
+      const k = trip.kids[id];
+      if (k.status === 'inline') { k.sent = false; delete knet[id]; }
+    });
     saveTrip();
     render();
     flush();
   }
-  edit.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendNote(); } });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendCar(); } });
 
   fillMain(
     h('div', { class: 'confirm' },
       h('div', { class: 'confirm-mark' }, svgCheck()),
       h('h2', { text: 'You’re in line' })),
-    h('p', { class: 'who', text: name }),
-    h('span', { class: 'room-tag', text: 'Room ' + profile.classroom }),
-    carLine,
-    status,
-    h('div', { class: 'call', id: 'callBox' }),
+    ids.map(id => kidCard(id, multi)),
+    trip.notes ? h('p', { class: 'car-line', text: 'Car: ' + trip.notes }) : null,
     h('div', { class: 'edit-note' },
-      h('label', { class: 'group-label', for: 'editNote', text: trip.notes ? 'Change car details' : 'Add car details' }),
-      h('div', { class: 'edit-row' }, edit,
-        h('button', { class: 'btn-quiet', type: 'button', onclick: sendNote }, 'Update'))),
+      h('p', { class: 'group-label', text: trip.notes ? 'Fix car details' : 'Add car details' }),
+      chipHost,
+      h('div', { class: 'edit-row', style: 'margin-top:4px' }, input,
+        h('button', { class: 'btn-quiet', type: 'button', onclick: sendCar }, 'Update'))),
     hintCard()
   );
-  paintCall();
-  showBar(h('button', { class: 'cta cta-dark', type: 'button', onclick: gotEm }, 'Got ’em'));
+  renderChips();
+  ids.forEach(id => { paintStatus(id); paintCall(id); });
+  showBar(h('button', { class: 'cta cta-dark', type: 'button', onclick: () => pickedUp(remaining) },
+    remaining.length > 1 ? 'Got ’em all' : 'Got ’em'));
 }
 
-function gotEm() {
-  trip.stage = 'done';
-  trip.pickedSent = false;
+function pickedUp(list) {
+  list.forEach(id => {
+    const k = trip.kids[id];
+    if (k && k.status === 'inline') { k.status = 'picked'; k.pickedSent = false; }
+  });
+  callStep = null;
   trip.ts = Date.now();
   saveTrip();
   render();
@@ -766,17 +1199,21 @@ function gotEm() {
 }
 
 function renderDone() {
+  const ids = tripIds();
   fillMain(
     h('div', { class: 'confirm' },
       h('div', { class: 'confirm-mark' }, svgCheck()),
       h('h2', { text: 'Pickup done' })),
-    h('p', { class: 'who', text: profile.child || profile.family }),
+    ids.map(id => h('p', { class: 'who' + (ids.length > 1 ? ' sm' : ''), style: 'margin-bottom:6px', text: fullName(childById(id)) })),
     h('p', { class: 'lead', style: 'margin-top:14px', text: 'See you tomorrow.' }),
     hintCard()
   );
   showBar(h('button', { class: 'cta cta-go', type: 'button', onclick: () => {
-    trip = { stage: 'idle' };
+    trip = {};
     saveTrip();
+    draft = { color: '', type: '', text: '' };
+    selected = null;
+    flow = '';
     render();
   } }, 'Back to start'));
 }
@@ -788,9 +1225,9 @@ function isStandalone() {
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   installPrompt = e;
-  if (profile && trip.stage !== 'idle') render();
+  if (profile && !flow && document.getElementById('hereBtn')) render();
 });
-window.addEventListener('appinstalled', () => { writeJSON(HINT_KEY, 1); installPrompt = null; render(); });
+window.addEventListener('appinstalled', () => { writeJSON(HINT_KEY, 1); installPrompt = null; if (profile) render(); });
 
 function hintCard() {
   if (isStandalone() || readJSON(HINT_KEY)) return null;
@@ -814,14 +1251,14 @@ function hintCard() {
     message = [h('strong', { text: 'Skip the link next time. ' }), 'Tap the ⋮ menu, then “Add to Home screen.”'];
   }
   actions.append(h('button', { class: 'link-btn', type: 'button', onclick: () => { writeJSON(HINT_KEY, 1); render(); } }, 'Hide this'));
-  return h('div', { class: 'hint' }, h('p', null, message), actions);
+  return h('div', { class: 'hint', style: 'margin-top:26px' }, h('p', null, message), actions);
 }
 
 /* ---------- start ---------- */
 render();
-if (trip.stage === 'inline' || trip.stage === 'done') flush();
-window.addEventListener('online', () => { if (trip.stage !== 'idle') flush(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden && trip.stage !== 'idle') flush(); });
+if (trip.started) flush();
+window.addEventListener('online', () => { if (trip.started) flush(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && trip.started) flush(); });
 </script>
 </body>
 </html>

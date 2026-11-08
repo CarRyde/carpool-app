@@ -96,7 +96,7 @@
   .card .who { padding: 1vw 1.4vw 1.1vw; }
   .card .name {
     font-family: var(--display); font-weight: 700;
-    font-size: clamp(28px, 2.5vw, 56px); line-height: 1;
+    font-size: clamp(36px, 3.4vw, 76px); line-height: 1;
     overflow-wrap: anywhere;
   }
   .card .family { margin-top: 0.35vw; font-weight: 600; font-size: clamp(16px, 1.15vw, 26px); color: var(--ink); opacity: 0.8; }
@@ -122,8 +122,9 @@
     border: 2px solid var(--line);
     border-radius: 999px;
     background: var(--white);
-    font-weight: 600; font-size: clamp(16px, 1.2vw, 26px);
-    color: var(--muted);
+    font-family: var(--display); font-weight: 700; font-size: clamp(26px, 2.3vw, 52px);
+    line-height: 1.1;
+    color: var(--ink);
   }
   .chip .tick { color: var(--go); font-weight: 700; }
 
@@ -301,7 +302,6 @@ function makeCard(f) {
   const card = el('div', 'card');
   const who = el('div', 'who');
   who.append(el('div', 'name', f.child || f.family));
-  if (f.child && f.family) who.append(el('div', 'family', f.family));
   card.append(who);
   if (f.notes) card.append(el('div', 'car', f.notes));
   return card;
