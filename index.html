@@ -395,6 +395,11 @@
   .kid-card.picked .mini-mark svg { width: 20px; height: 20px; }
   .kid-card.picked .who { font-size: 30px; }
   .kid-card.picked .sub { color: var(--go); font-weight: 700; font-size: 16px; }
+  .pick-name { display: inline-flex; align-items: center; gap: 12px; min-width: 0; text-align: left; }
+  .box { width: 26px; height: 26px; flex: none; border-radius: 8px; border: 2.5px solid var(--ink); background: var(--white); display: inline-grid; place-items: center; }
+  .chip[aria-pressed="true"] .box { background: var(--vest); border-color: var(--vest); }
+  .box svg { width: 18px; height: 18px; }
+  .box svg path { stroke: var(--ink); }
   .chip.wide { width: 100%; justify-content: space-between; min-height: 56px; margin-bottom: 8px; }
   .picklist { margin-bottom: 8px; }
 
@@ -1073,8 +1078,9 @@ function renderIdle(errorText) {
       const cur = selIds();
       pickHost.replaceChildren(...kids.map(c => {
         const on = cur.indexOf(c.id) >= 0;
-        const b = h('button', { class: 'chip wide', type: 'button', 'aria-pressed': on ? 'true' : 'false' },
-          h('span', { text: fullName(c) }), h('span', { text: 'Room ' + c.room }));
+        const b = h('button', { class: 'chip wide', type: 'button', role: 'checkbox', 'aria-checked': on ? 'true' : 'false', 'aria-pressed': on ? 'true' : 'false' },
+          h('span', { class: 'pick-name' }, h('span', { class: 'box' }, on ? svgCheck() : null), h('span', { text: fullName(c) })),
+          h('span', { text: 'Room ' + c.room }));
         b.addEventListener('click', () => {
           if (on && cur.length === 1) return;     // at least one child stays selected
           if (on) selected.delete(c.id); else selected.add(c.id);
@@ -1085,8 +1091,9 @@ function renderIdle(errorText) {
     };
     drawPick();
     people = [
-      h('span', { class: 'group-label', text: 'Who are you picking up?' }),
-      pickHost
+      h('span', { class: 'group-label', text: 'Who are you picking up? Tap to choose one or more.' }),
+      pickHost,
+      h('p', { class: 'call-help', style: 'margin-top:0', text: 'Each child shows on their own classroom’s TV.' })
     ];
   }
 
