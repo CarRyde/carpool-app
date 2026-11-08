@@ -96,7 +96,7 @@
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
-const POLL_MS = 4000;
+const POLL_MS = 1500;
 
 const $ = id => document.getElementById(id);
 let version = '';
@@ -200,24 +200,26 @@ function paintSoundButton() {
 }
 let lastBeepAt = 0;
 function beep() {
-  // One short tone, never more than once every 10 seconds.
+  // Two short tones, once per child, and never more than once every 10 seconds.
   const now = Date.now();
   if (now - lastBeepAt < 10000) return;
   lastBeepAt = now;
   try {
     audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    const t0 = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(t0);
-    osc.stop(t0 + 0.42);
+    [0, 0.28].forEach(offset => {
+      const t0 = audioCtx.currentTime + offset;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.24);
+    });
   } catch (e) {}
 }
 $('soundBtn').addEventListener('click', () => {
@@ -254,7 +256,7 @@ function draw(families) {
   alerted.forEach((seen, who) => { if (nowMs - seen > 30000) alerted.delete(who); });
   if (!firstPaint && soundOn && fresh) {
     beep();
-    try { navigator.vibrate && navigator.vibrate(200); } catch (e) {}
+    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
   }
   firstPaint = false;
 }
@@ -293,7 +295,7 @@ async function tick() {
   } finally {
     inflight = false;
     clearTimeout(timer);
-    timer = setTimeout(tick, Math.max(250, (document.hidden ? 15000 : POLL_MS) - (Date.now() - startedAt)));
+    timer = setTimeout(tick, Math.max(250, (document.hidden ? 6000 : POLL_MS) - (Date.now() - startedAt)));
   }
 }
 
