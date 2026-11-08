@@ -84,27 +84,29 @@
   h2.section.quiet { color: var(--muted); font-size: clamp(20px, 1.5vw, 32px); margin-top: 3vw; }
   .empty { margin: 0; color: var(--muted); font-size: clamp(18px, 1.3vw, 28px); }
 
-  .cards { display: flex; flex-wrap: wrap; gap: 1.4vw; }
+  /* --s is a scale from about 0.34 to 1. The page shrinks everything
+     together when a lot of names are waiting, so they all stay on screen. */
+  .cards { display: flex; flex-wrap: wrap; gap: calc(1.4vw * var(--s, 1)); }
   .card {
     background: var(--vest);
-    border-radius: 1vw;
+    border-radius: calc(1vw * var(--s, 1));
     overflow: hidden;
-    min-width: 15vw;
+    min-width: calc(15vw * var(--s, 1));
     max-width: 30vw;
     box-shadow: 0 0.3vw 0.9vw rgba(28,33,40,0.18), inset 0 0 0 0.18vw var(--ink);
   }
-  .card .who { padding: 1vw 1.4vw 1.1vw; }
+  .card .who { padding: calc(1vw * var(--s, 1)) calc(1.4vw * var(--s, 1)) calc(1.1vw * var(--s, 1)); }
   .card .name {
     font-family: var(--display); font-weight: 700;
-    font-size: clamp(36px, 3.4vw, 76px); line-height: 1;
+    font-size: calc(clamp(36px, 3.4vw, 76px) * var(--s, 1)); line-height: 1;
     overflow-wrap: anywhere;
   }
   .card .family { margin-top: 0.35vw; font-weight: 600; font-size: clamp(16px, 1.15vw, 26px); color: var(--ink); opacity: 0.8; }
   .card .car {
     background: var(--white);
-    padding: 0.8vw 1.4vw 0.9vw;
+    padding: calc(0.8vw * var(--s, 1)) calc(1.4vw * var(--s, 1)) calc(0.9vw * var(--s, 1));
     font-weight: 600;
-    font-size: clamp(18px, 1.35vw, 30px);
+    font-size: calc(clamp(18px, 1.35vw, 30px) * max(var(--s, 1), 0.55));
     line-height: 1.2;
     border-top: 0.18vw solid var(--ink);
     overflow-wrap: anywhere;
@@ -122,11 +124,12 @@
     border: 2px solid var(--line);
     border-radius: 999px;
     background: var(--white);
-    font-family: var(--display); font-weight: 700; font-size: clamp(26px, 2.3vw, 52px);
+    font-family: var(--display); font-weight: 700; font-size: calc(clamp(26px, 2.3vw, 52px) * max(var(--s, 1), 0.6));
     line-height: 1.1;
     color: var(--ink);
   }
   .chip .tick { color: var(--go); font-weight: 700; }
+  .chip.more { color: var(--muted); border-style: dashed; }
 
   footer { padding: 0.6vw 3vw 0.9vw; text-align: right; }
   .link-btn {
@@ -321,15 +324,47 @@ function makeChip(f) {
   return chip;
 }
 
+const MAX_PICKED_SHOWN = 12;
+
 function applyFamilies(families) {
   const waiting = families.filter(f => f.status === 'InLine');
   const picked = families.filter(f => f.status === 'GotEm');
+  // Only the most recent picked-up names show, so a long afternoon
+  // doesn't push the waiting names off the screen.
+  const shown = picked.slice(-MAX_PICKED_SHOWN);
+  const oldMore = $('chips').querySelector('.more');
+  if (oldMore) oldMore.remove();
   reconcile($('cards'), waiting, makeCard, updateCard);
-  reconcile($('chips'), picked, makeChip, () => {});
+  reconcile($('chips'), shown, makeChip, () => {});
+  if (picked.length > shown.length) {
+    $('chips').insertBefore(el('div', 'chip more', '+' + (picked.length - shown.length) + ' more'), $('chips').firstChild);
+  }
   $('emptyWaiting').hidden = waiting.length > 0;
   $('emptyPicked').hidden = picked.length > 0;
   firstPaint = false;
+  fit();
 }
+
+/* Find the biggest size at which every waiting name fits on the screen
+   without scrolling. Few names: full size. Many names: smaller. */
+const MIN_SCALE = 0.34;
+function fit() {
+  const root = document.documentElement, main = document.querySelector('main');
+  if ($('display').hidden) return;
+  const fits = () => main.scrollHeight <= main.clientHeight + 1;
+  root.style.setProperty('--s', 1);
+  if (fits()) return;
+  let lo = MIN_SCALE, hi = 1, best = MIN_SCALE;
+  for (let i = 0; i < 8; i++) {
+    const mid = (lo + hi) / 2;
+    root.style.setProperty('--s', mid);
+    if (fits()) { best = mid; lo = mid; } else { hi = mid; }
+  }
+  root.style.setProperty('--s', best);
+}
+let fitTimer = null;
+window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fit, 150); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 
 /* ---------- polling ---------- */
 async function callApi(params, timeoutMs) {
