@@ -671,7 +671,7 @@ async function flush() {
         if ((k.status === 'inline' || k.status === 'picked') && !k.sent) {
           setNet(id, 'sending');
           const res = await callApi('checkin', {
-            family: profile.family, classroom: c.room, child: name, notes: trip.notes || ''
+            family: c.last, classroom: c.room, child: name, notes: trip.notes || ''
           });
           if (!res.ok) { rejected(); return; }
           k.sent = true;
@@ -682,7 +682,7 @@ async function flush() {
         }
         if (k.status === 'inline' && k.call === 'pending') {
           // Staff hear about it only after the check-in has gone through.
-          const res = await callApi('callchild', { family: profile.family, child: name });
+          const res = await callApi('callchild', { family: c.last, child: name });
           if (res.ok) {
             k.call = 'sent';
           } else if (!k.recheck) {
@@ -697,7 +697,7 @@ async function flush() {
           continue;
         }
         if (k.status === 'picked' && !k.pickedSent) {
-          await callApi('gotem', { family: profile.family, child: name });
+          await callApi('gotem', { family: c.last, child: name });
           k.pickedSent = true;
           saveTrip();
           progress = true;
@@ -909,7 +909,7 @@ function render(showRejected) {
     flow = '';
     return tripIds().some(id => trip.kids[id].status === 'inline') ? renderInLine() : renderDone();
   }
-  return renderIdle(showRejected ? 'We couldn’t check you in. Check your family name and rooms in My info, then try again.' : '');
+  return renderIdle(showRejected ? 'We couldn’t check you in. Check your child’s name and room in My info, then try again.' : '');
 }
 
 function nameBlock(c, small) { return h('p', { class: 'who' + (small ? ' sm' : ''), text: fullName(c) }); }
@@ -933,10 +933,8 @@ function renderSetup(editing, startError) {
   }
 
   function save() {
-    const family = squish(wc.family);
     const kids = wc.children.map(c => ({ id: c.id, first: squish(c.first), last: squish(c.last), room: squish(c.room) }));
     let msg = '';
-    if (!family) msg = 'Enter your family name.';
     for (let i = 0; !msg && i < kids.length; i++) {
       const who = kids.length > 1 ? 'child ' + (i + 1) + '’s' : 'your child’s';
       if (!kids[i].first) msg = 'Enter ' + who + ' first name.';
@@ -957,7 +955,7 @@ function renderSetup(editing, startError) {
         if (k.status === 'inline') { k.sent = false; delete knet[c.id]; needFlush = true; }
       }
     });
-    profile = { family: family, children: kids };
+    profile = { family: kids[0].last, children: kids };
     writeJSON(PROFILE_KEY, profile);
     selected = null;
     if (trip.started) saveTrip();
@@ -996,7 +994,6 @@ function renderSetup(editing, startError) {
       h('p', { class: 'lead', text: editing
         ? 'Fix anything that’s wrong. It saves on this phone.'
         : 'This stays on this phone, so next time it’s one tap. Add each child, even if they’re in different classrooms.' }),
-      field('Family name', 'f_family', wc.family, { placeholder: 'Smith family', autocapitalize: 'words', enterkeyhint: 'next', maxlength: 60 }, v => { wc.family = v; }, trip.started && tripIds().length > 0),
       blocks,
       addBtn,
       error ? h('p', { class: 'form-error', role: 'alert', text: error }) : null,

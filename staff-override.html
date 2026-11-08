@@ -254,7 +254,7 @@ function makeRow(f) {
 function updateRow(row, f) {
   row._f = f;
   const p = row._parts;
-  const sub = f.child && f.family ? 'Family: ' + f.family : '';
+  const sub = '';
   if (p.sub.textContent !== sub) p.sub.textContent = sub;
   p.sub.hidden = !sub;
   if (p.car.textContent !== f.notes) p.car.textContent = f.notes;
@@ -278,7 +278,6 @@ function makePickedRow(f) {
   room.append(el('small', null, 'Room'), document.createTextNode(f.classroom));
   const info = el('div', 'info');
   info.append(el('div', 'name', f.child || f.family));
-  if (f.child && f.family) info.append(el('div', 'sub', 'Family: ' + f.family));
   info.append(el('div', 'tag', '✓ Picked up'));
   row.append(room, info);
   return row;
