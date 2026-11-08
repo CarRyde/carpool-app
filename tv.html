@@ -191,7 +191,7 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxbk71KBnquE8aGmmWpjjGGeJSBdUzDE5xtOjYGc2PMQAFv_hVVVN9ymqUwWYTgYyid/exec';
 const ROOM_KEY = 'carpool_room';
-const POLL_MS = 1500;       // how often the TV asks for updates
+const POLL_MS = 2000;       // how often the TV asks for updates
 const HIDDEN_POLL_MS = 6000;  // only when the browser tab is hidden
 const ROOM_RE = /^[A-Za-z0-9][A-Za-z0-9 \-]{0,11}$/;
 
@@ -347,13 +347,15 @@ function applyFamilies(families) {
 
 /* Find the biggest size at which every waiting name fits on the screen
    without scrolling. Few names: full size. Many names: smaller. */
-const MIN_SCALE = 0.34;
+// Names never shrink below this, so they stay readable from the back of a
+// classroom. If even that isn't enough room, the list pages automatically.
+const MIN_SCALE = 0.55;
 function fit() {
   const root = document.documentElement, main = document.querySelector('main');
   if ($('display').hidden) return;
   const fits = () => main.scrollHeight <= main.clientHeight + 1;
   root.style.setProperty('--s', 1);
-  if (fits()) return;
+  if (fits()) { stopPaging(); return; }
   let lo = MIN_SCALE, hi = 1, best = MIN_SCALE;
   for (let i = 0; i < 8; i++) {
     const mid = (lo + hi) / 2;
@@ -361,6 +363,25 @@ function fit() {
     if (fits()) { best = mid; lo = mid; } else { hi = mid; }
   }
   root.style.setProperty('--s', best);
+  if (fits()) stopPaging(); else startPaging();
+}
+
+/* More names than fit at a readable size: show one screenful at a time and
+   move to the next every 7 seconds, then back to the top. */
+let pageTimer = null;
+function stopPaging() {
+  if (pageTimer) { clearInterval(pageTimer); pageTimer = null; }
+  const main = document.querySelector('main');
+  if (main.scrollTop) main.scrollTop = 0;
+}
+function startPaging() {
+  if (pageTimer) return;
+  pageTimer = setInterval(() => {
+    const main = document.querySelector('main');
+    const step = main.clientHeight - 40;
+    const atEnd = main.scrollTop + main.clientHeight >= main.scrollHeight - 4;
+    main.scrollTo({ top: atEnd ? 0 : main.scrollTop + step, behavior: 'smooth' });
+  }, 7000);
 }
 let fitTimer = null;
 window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fit, 150); });
