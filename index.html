@@ -671,7 +671,7 @@ async function flush() {
         if ((k.status === 'inline' || k.status === 'picked') && !k.sent) {
           setNet(id, 'sending');
           const res = await callApi('checkin', {
-            family: c.last, classroom: c.room, child: name, notes: trip.notes || ''
+            family: c.last, id: id, classroom: c.room, child: name, notes: trip.notes || ''
           });
           if (!res.ok) { rejected(); return; }
           k.sent = true;
@@ -682,7 +682,7 @@ async function flush() {
         }
         if (k.status === 'inline' && k.call === 'pending') {
           // Staff hear about it only after the check-in has gone through.
-          const res = await callApi('callchild', { family: c.last, child: name });
+          const res = await callApi('callchild', { family: c.last, id: id, child: name });
           if (res.ok) {
             k.call = 'sent';
           } else if (!k.recheck) {
@@ -697,7 +697,7 @@ async function flush() {
           continue;
         }
         if (k.status === 'picked' && !k.pickedSent) {
-          await callApi('gotem', { family: c.last, child: name });
+          await callApi('gotem', { family: c.last, id: id, child: name });
           k.pickedSent = true;
           saveTrip();
           progress = true;

@@ -134,7 +134,7 @@ function showBanner(text) {
   $('banner').textContent = text || '';
   $('banner').hidden = !text;
 }
-function alertKey(f) { return f.checkInTime + '|' + f.family + '|' + f.child + '|' + f.callAt; }
+function alertKey(f) { return f.checkInTime + '|' + (f.id || f.family) + '|' + f.child + '|' + f.callAt; }
 function nameOf(f) { return f.child || f.family; }
 
 function reconcile(container, items, keyFn, makeNode, updateNode) {
@@ -252,7 +252,7 @@ async function callDone(card, f) {
   card.remove();
   paintCount();
   try {
-    const res = await callApi({ action: 'callclear', family: f.family, child: f.child || '' });
+    const res = await callApi({ action: 'callclear', family: f.family, id: f.id || '', child: f.child || '' });
     if (!res.ok) throw new Error('rejected');
     showBanner('');
   } catch (e) {
