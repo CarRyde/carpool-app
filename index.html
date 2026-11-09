@@ -481,6 +481,11 @@
   .slider.done .slider-label { opacity: 0.85; }
 
   /* ---------- Home-screen hint ---------- */
+  .car-card { margin-top: 18px; padding: 14px 16px; background: var(--white); border: 2px solid var(--line); border-radius: 14px; }
+  .car-card .car-note { margin: 2px 0 6px; font-weight: 700; font-size: 20px; line-height: 1.25; overflow-wrap: anywhere; }
+  .car-card .link-btn { padding-left: 0; }
+  .how, .next-note { margin-top: 14px; padding: 12px 14px; border-left: 6px solid var(--vest); background: var(--white); border-radius: 0 10px 10px 0; font-size: 16px; line-height: 1.35; color: var(--ink); }
+  .ok-banner { margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; background: var(--vest); color: var(--ink); font-size: 17px; line-height: 1.3; }
   .hint {
     margin-top: 26px;
     padding: 16px;
@@ -585,7 +590,18 @@ let profile = (function () {
   return r.profile;
 })();
 let trip = loadTrip();           // { started, ts, notes, car, kids: { id: { status, sent, call, ... } } }
-let draft = (trip.started && trip.car) ? Object.assign({ color: '', type: '', text: '' }, trip.car) : { color: '', type: '', text: '' };
+// Car details are remembered for today only, so tomorrow starts fresh.
+const CAR_KEY = 'carpool_car_v1';
+const todayKey = () => new Date().toLocaleDateString('en-CA');
+function loadCar() {
+  const blank = { color: '', type: '', text: '' };
+  const saved = readJSON(CAR_KEY);
+  if (saved && saved.day === todayKey() && saved.car) return Object.assign(blank, saved.car);
+  return blank;
+}
+function saveCar() { writeJSON(CAR_KEY, { day: todayKey(), car: draft }); }
+let draft = (trip.started && trip.car) ? Object.assign({ color: '', type: '', text: '' }, trip.car) : loadCar();
+let justSaved = false;           // show the "now tap I'm here" message once after first setup
 let flow = '';                   // '', 'grounds', 'notyet', 'slide' (only while checking in)
 let callStep = null;             // { id, step } while a parent is going through the intercom questions
 let selected = null;             // Set of child ids being picked up
@@ -981,6 +997,7 @@ function renderSetup(editing, startError) {
     profile = { family: kids[0].last, children: kids };
     writeJSON(PROFILE_KEY, profile);
     selected = null;
+    if (!editing) justSaved = true;
     if (trip.started) saveTrip();
     render();
     if (needFlush) flush();
@@ -1026,7 +1043,10 @@ function renderSetup(editing, startError) {
         chipHost,
         h('div', { class: 'field', style: 'margin-top:4px' }, carInput('extra'))) : null,
       error ? h('p', { class: 'form-error', role: 'alert', text: error }) : null,
-      h('p', { class: 'call-help', id: 'fillHint', style: 'margin-top:0', text: 'Fill in every box to continue.' })
+      h('p', { class: 'call-help', id: 'fillHint', style: 'margin-top:0', text: 'Fill in every box to continue.' }),
+      editing ? null : h('div', { class: 'next-note' },
+        h('strong', { text: 'What happens next: ' }),
+        'after you save, tap “I’m here” when you reach the pickup line. That puts your child’s name on the classroom TV.')
     );
     if (editing) renderChips();
     const saveBtn = h('button', { class: 'cta cta-go', type: 'button', onclick: save }, editing ? 'Save changes' : 'Save');
@@ -1054,6 +1074,7 @@ function chip(label, selected, onTap, swatchColor) {
     swatchColor ? h('span', { class: 'swatch', style: 'background:' + swatchColor }) : null, label);
   b.addEventListener('click', () => {
     onTap();
+    saveCar();
     renderChips();
   });
   return b;
@@ -1080,7 +1101,7 @@ function carInput(id) {
     placeholder: 'Make and model, like Honda Odyssey',
     autocomplete: 'off', autocapitalize: 'sentences', enterkeyhint: 'done'
   });
-  input.addEventListener('input', () => { draft.text = input.value; });
+  input.addEventListener('input', () => { draft.text = input.value; saveCar(); });
   return input;
 }
 
@@ -1125,10 +1146,28 @@ function renderIdle(errorText) {
     ];
   }
 
+  const note = currentNote();
+  const carCard = h('div', { class: 'car-card' },
+    h('span', { class: 'group-label', text: 'Your car today' }),
+    note
+      ? h('p', { class: 'car-note', text: note })
+      : h('p', { class: 'lead', style: 'margin:0 0 4px', text: 'Add your car color and type so your child can spot you. It’s optional.' }),
+    h('button', { class: 'link-btn', type: 'button', onclick: () => renderSetup(true) }, note ? 'Change car details' : 'Add car details'));
+  const how = h('div', { class: 'how' },
+    h('strong', { text: 'How it works: ' }),
+    'tap “I’m here” when you’re in the pickup line. Your child’s name then shows on the classroom TV so they know to come out.');
+  const savedBanner = justSaved
+    ? h('div', { class: 'ok-banner', role: 'status' },
+        h('strong', { text: 'You’re all set. ' }), 'Tap “I’m here” below when you reach the pickup line.')
+    : null;
+
   fillMain(
     errorText ? h('p', { class: 'form-error', role: 'alert', text: errorText }) : null,
+    savedBanner,
     notice,
     people,
+    carCard,
+    how,
     hintCard()
   );
 
@@ -1155,6 +1194,7 @@ function startArrive() {
     return;
   }
   flow = 'grounds';
+  justSaved = false;
   renderIdle();
 }
 
@@ -1232,6 +1272,7 @@ function renderDone() {
     trip = {};
     saveTrip();
     draft = { color: '', type: '', text: '' };
+    saveCar();
     selected = null;
     flow = '';
     render();
